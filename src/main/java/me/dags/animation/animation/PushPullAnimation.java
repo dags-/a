@@ -29,17 +29,15 @@ public class PushPullAnimation implements Animation {
 
     @Override
     public int play(World world, Vector3i position) {
-        if (getTimeline().hasNext()) {
-            return animation.play(world, position);
-        } else {
-            pull = !pull;
-            getTimeline().reverse();
-            return animation.play(world, position);
+        if (animation.hasFinished()) {
+            reset();
         }
+        return animation.play(world, position);
     }
 
     @Override
-    public int playFrame(World world, Vector3i position) {
-        return animation.playFrame(world, position);
+    public void reset() {
+        animation.getTimeline().reverse();
+        pull = !pull;
     }
 }

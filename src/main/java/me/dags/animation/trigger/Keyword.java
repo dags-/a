@@ -1,4 +1,4 @@
-package me.dags.animation.context;
+package me.dags.animation.trigger;
 
 /**
  * @author dags <dags@dags.me>
@@ -6,14 +6,21 @@ package me.dags.animation.context;
 public class Keyword implements Condition<String> {
 
     private final String keyword;
+    private final String id;
 
-    public Keyword(String keyword) {
+    public Keyword(String id, String keyword) {
         this.keyword = keyword;
+        this.id = id;
     }
 
     @Override
     public boolean test(String s) {
         return s.equalsIgnoreCase(keyword);
+    }
+
+    @Override
+    public String getId() {
+        return id;
     }
 
     @Override

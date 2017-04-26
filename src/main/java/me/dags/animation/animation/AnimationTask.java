@@ -31,7 +31,6 @@ public class AnimationTask implements Consumer<Task> {
         if (--interval <= 0) {
             step++;
             interval = animation.play(world, origin);
-
             if (animation.hasFinished()) {
                 complete = true;
                 task.cancel();

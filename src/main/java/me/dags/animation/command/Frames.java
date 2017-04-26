@@ -1,14 +1,9 @@
 package me.dags.animation.command;
 
-import me.dags.animation.AnimationHandler;
 import me.dags.animation.Animator;
-import me.dags.animation.Recorder;
-import me.dags.animation.Sequence;
-import me.dags.animation.animation.Animation;
-import me.dags.animation.animation.AnimationTask;
+import me.dags.animation.animation.AnimationHandler;
 import me.dags.animation.animation.PushPullAnimation;
-import me.dags.animation.animation.SimpleAnimation;
-import me.dags.animation.frame.Frame;
+import me.dags.animation.frame.Recorder;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
@@ -17,9 +12,7 @@ import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.scheduler.Task;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -48,27 +41,17 @@ public class Frames {
 
     @Command(alias = "add", parent = "frame")
     public void add(@Caller Player player, @One("duration") int duration) {
-        add(player, true, duration);
-    }
-
-    @Command(alias = "add", parent = "frame")
-    public void add(@Caller Player player, @One("ignore air") boolean ignoreAir, @One("duration") int duration) {
         Optional<Recorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
-            recorder.get().addFrame(player, ignoreAir, duration);
+            recorder.get().addFrame(player,  duration);
         }
     }
 
     @Command(alias = "set", parent = "frame")
-    public void set(@Caller Player player, @One("frame_number") int number, @One("duration") int duration) {
-        set(player, number, true, duration);
-    }
-
-    @Command(alias = "set", parent = "frame")
-    public void set(@Caller Player player, @One("frame_number") int number, @One("ignore air") boolean ignoreAir, @One("duration") int duration) {
+    public void set(@Caller Player player, @One("index") int number, @One("duration") int duration) {
         Optional<Recorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
-            recorder.get().setFrame(player, number, ignoreAir, duration);
+            recorder.get().setFrame(player, number, duration);
         }
     }
 
@@ -81,6 +64,8 @@ public class Frames {
             AnimationHandler handler = AnimationHandler.builder()
                     .frames(recorder.get().getFrames())
                     .origin(recorder.get().getOrigin())
+                    .factory(PushPullAnimation::new)
+                   // .factory(RepeatAnimation::new)
                     .build();
 
             recorder.get().setTester(handler);

@@ -25,7 +25,12 @@ public class SimpleAnimation implements Animation {
     }
 
     @Override
-    public int playFrame(World world, Vector3i position) {
+    public boolean hasFinished() {
+        return !timeline.hasNext();
+    }
+
+    @Override
+    public int play(World world, Vector3i position) {
         if (history != null) {
             history.apply(world, position, BlockChangeFlag.NONE);
         }

@@ -1,21 +1,17 @@
 package me.dags.animation;
 
-import com.flowpowered.math.vector.Vector3d;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.inject.Inject;
 import me.dags.animation.animation.AnimationTask;
 import me.dags.animation.command.Frames;
+import me.dags.animation.frame.Recorder;
 import me.dags.commandbus.CommandBus;
-import org.spongepowered.api.data.type.HandTypes;
-import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.item.ItemType;
-import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.scheduler.Task;
@@ -46,21 +42,7 @@ public class Animator {
     @Listener
     public void init(GameInitializationEvent event) {
         CommandBus.create().registerPackageOf(Frames.class).submit(this);
-    }
-
-    @Listener
-    public void interact(InteractBlockEvent event, @Root Player player) {
-        Optional<Vector3d> position = event.getInteractionPoint();
-        if (position.isPresent()) {
-            Optional<Recorder> recorder = getRecorder(player.getUniqueId());
-            if (recorder.isPresent()) {
-                Optional<ItemStack> item = player.getItemInHand(HandTypes.MAIN_HAND);
-                if (item.filter(i -> i == recorder.get().getWand()).isPresent()) {
-                    recorder.get().setPos(player, position.get().toInt());
-                    event.setCancelled(true);
-                }
-            }
-        }
+        Sponge.getEventManager().registerListeners(this, new EventHandler());
     }
 
     public static Cause getCause() {

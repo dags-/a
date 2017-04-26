@@ -1,8 +1,7 @@
-package me.dags.animation;
+package me.dags.animation.frame;
 
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.animation.frame.Frame;
-import me.dags.animation.frame.SchemFrame;
+import me.dags.animation.animation.AnimationHandler;
 import me.dags.commandbus.format.FMT;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
@@ -35,7 +34,7 @@ public class Recorder {
     }
 
     public Vector3i getOrigin() {
-        return pos1;
+        return origin;
     }
 
     public AnimationHandler getTester() {
@@ -77,10 +76,6 @@ public class Recorder {
     }
 
     public void addFrame(Player source, int duration) {
-        addFrame(source, true, duration);
-    }
-
-    public void addFrame(Player source, boolean ignoreAir, int duration) {
         if (pos1 == Vector3i.ZERO) {
             FMT.stress("pos1").error(" has not been set!").tell(source);
             return;
@@ -96,10 +91,6 @@ public class Recorder {
     }
 
     public void setFrame(Player source, int number, int duration) {
-        setFrame(source, number, true, duration);
-    }
-
-    public void setFrame(Player source, int number, boolean ignoreAir, int duration) {
         if (number < 0 || number >= frames.size()) {
             FMT.error("Frame number must be in range: ").stress("%s - %s", 0, frames.size() - 1).tell(source);
             return;

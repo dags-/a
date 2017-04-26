@@ -6,6 +6,7 @@ import me.dags.animation.Animator;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.data.MemoryDataContainer;
 import org.spongepowered.api.data.persistence.DataFormats;
 import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.world.BlockChangeFlag;
@@ -69,7 +70,7 @@ public class SchemFrame implements Frame {
         ArchetypeVolume volume = world.createArchetypeVolume(min, max, origin);
         Schematic schematic = Schematic.builder()
                 .paletteType(BlockPaletteTypes.LOCAL)
-                .metaValue("duration", duration)
+                .metadata(new MemoryDataContainer().set(DataQuery.of("duration"), duration))
                 .volume(volume)
                 .build();
         return new SchemFrame(schematic);

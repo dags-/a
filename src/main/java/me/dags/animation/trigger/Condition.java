@@ -1,4 +1,4 @@
-package me.dags.animation.context;
+package me.dags.animation.trigger;
 
 import org.spongepowered.api.CatalogType;
 
@@ -9,7 +9,7 @@ public interface Condition<T> extends CatalogType {
 
     boolean test(T t);
 
-    default String getId() {
-        return getName();
+    default String getName() {
+        return getId();
     }
 }

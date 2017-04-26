@@ -19,6 +19,12 @@ public class VolumeHistory implements Frame.History {
 
     @Override
     public void apply(World world, Vector3i position, BlockChangeFlag flag) {
-        world.getBlockWorker(Animator.getCause()).map((volume, x, y, z) -> history.getBlock(x, y, z));
+        for (int y = history.getBlockMin().getY(); y <= history.getBlockMax().getY(); y++) {
+            for (int z = history.getBlockMin().getZ(); z <= history.getBlockMax().getZ(); z++) {
+                for (int x = history.getBlockMin().getX(); x <= history.getBlockMax().getX(); x++) {
+                    world.setBlock(x, y, z, history.getBlock(x, y, z), Animator.getCause());
+                }
+            }
+        }
     }
 }

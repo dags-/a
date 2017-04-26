@@ -1,4 +1,4 @@
-package me.dags.animation.context;
+package me.dags.animation.trigger;
 
 import com.google.common.collect.ImmutableList;
 import org.spongepowered.api.service.context.Context;
@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * @author dags <dags@dags.me>
  */
-public class ConditionManager {
+public class ConditionRegistry {
 
     private final Map<String, Condition<Location<World>>> interactable = new HashMap<>();
     private final Map<String, Condition<Location<World>>> positional = new HashMap<>();

@@ -29,16 +29,9 @@ public class RepeatAnimation implements Animation {
 
     @Override
     public int play(World world, Vector3i position) {
-        if (!animation.hasFinished()) {
-            return animation.play(world, position);
-        } else {
-            getTimeline().goToStart();
-            return animation.play(world, position);
+        if (animation.hasFinished()) {
+            animation.reset();
         }
-    }
-
-    @Override
-    public int playFrame(World world, Vector3i position) {
-        return animation.playFrame(world, position);
+        return animation.play(world, position);
     }
 }

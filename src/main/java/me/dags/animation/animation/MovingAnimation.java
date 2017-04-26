@@ -13,6 +13,8 @@ public class MovingAnimation implements Animation {
     private final Animation animation;
     private final Sequence<Vector3i> positions;
 
+    private Vector3i offset = new Vector3i(0, 0, 0);
+
     public MovingAnimation(Animation animation, Sequence<Vector3i> positions) {
         this.animation = animation;
         this.positions = positions;
@@ -29,11 +31,18 @@ public class MovingAnimation implements Animation {
     }
 
     @Override
-    public int playFrame(World world, Vector3i position) {
+    public int play(World world, Vector3i position) {
         if (positions.hasNext()) {
-            Vector3i pos = position.add(positions.next());
+            offset = offset.add(positions.next());
+            Vector3i pos = position.add(offset);
             return animation.play(world, pos);
         }
         return 0;
+    }
+
+    @Override
+    public void reset() {
+        animation.reset();
+        positions.goToStart();
     }
 }

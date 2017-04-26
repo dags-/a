@@ -1,4 +1,4 @@
-package me.dags.animation.context;
+package me.dags.animation.trigger;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
@@ -10,14 +10,21 @@ import org.spongepowered.api.world.World;
  */
 public class Position implements Condition<Location<World>> {
 
+    private final String id;
     private final String world;
     private final Vector3i min;
     private final Vector3i max;
 
-    public Position(String world, Vector3i min, Vector3i max) {
+    public Position(String id, String world, Vector3i min, Vector3i max) {
+        this.id = id;
         this.world = world;
         this.min = min;
         this.max = max;
+    }
+
+    @Override
+    public String getId() {
+        return null;
     }
 
     @Override
