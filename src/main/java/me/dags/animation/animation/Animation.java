@@ -3,6 +3,7 @@ package me.dags.animation.animation;
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.animation.Sequence;
 import me.dags.animation.frame.Frame;
+import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.world.World;
 
 /**
@@ -10,7 +11,7 @@ import org.spongepowered.api.world.World;
  */
 public interface Animation {
 
-    Sequence<Frame.Instance> getTimeline();
+    Sequence<Frame> getTimeline();
 
     default boolean hasFinished() {
         return !getTimeline().hasNext();

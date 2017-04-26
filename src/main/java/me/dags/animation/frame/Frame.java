@@ -1,6 +1,7 @@
 package me.dags.animation.frame;
 
 import com.flowpowered.math.vector.Vector3i;
+import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.world.BlockChangeFlag;
 import org.spongepowered.api.world.World;
 
@@ -9,14 +10,16 @@ import org.spongepowered.api.world.World;
  */
 public interface Frame {
 
-    Instance newInstance();
+    void applyFast(World world, Vector3i position, BlockChangeFlag flag);
 
-    interface Instance {
+    History apply(World world, Vector3i position, BlockChangeFlag flag);
 
-        int getDuration();
+    int getDuration();
 
-        void paste(World world, Vector3i position, BlockChangeFlag flag);
+    DataContainer toContainer();
 
-        void reset(World world, Vector3i position, BlockChangeFlag flag);
+    interface History {
+
+        void apply(World world, Vector3i position, BlockChangeFlag flag);
     }
 }

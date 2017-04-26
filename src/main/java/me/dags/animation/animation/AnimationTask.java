@@ -1,8 +1,7 @@
-package me.dags.animation;
+package me.dags.animation.animation;
 
 import com.flowpowered.math.vector.Vector3i;
 import com.google.common.base.Preconditions;
-import me.dags.animation.animation.Animation;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.world.World;
 
@@ -17,7 +16,9 @@ public class AnimationTask implements Consumer<Task> {
     private final World world;
     private final Vector3i origin;
 
-    private int count = 0;
+    private boolean complete = false;
+    private int interval = 0;
+    private int step = 0;
 
     private AnimationTask(Builder builder) {
         this.animation = builder.animation;
@@ -27,12 +28,28 @@ public class AnimationTask implements Consumer<Task> {
 
     @Override
     public void accept(Task task) {
-        if (--count <= 0) {
-            count = animation.play(world, origin);
+        if (--interval <= 0) {
+            step++;
+            interval = animation.play(world, origin);
 
             if (animation.hasFinished()) {
+                complete = true;
                 task.cancel();
             }
+        }
+    }
+
+    public boolean isComplete() {
+        return complete;
+    }
+
+    public int getCurrentStep() {
+        return step;
+    }
+
+    public void skip(int steps) {
+        while (steps-- > 0 && !animation.hasFinished()) {
+            interval = animation.play(world, origin);
         }
     }
 

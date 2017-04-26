@@ -11,30 +11,28 @@ import org.spongepowered.api.world.World;
  */
 public class SimpleAnimation implements Animation {
 
-    private final Sequence<Frame.Instance> timeline;
+    private final Sequence<Frame> timeline;
 
-    private Frame.Instance lastFrame = null;
-    private Vector3i lastPosition = null;
+    private Frame.History history = null;
 
-    public SimpleAnimation(Sequence<Frame.Instance> timeline) {
+    public SimpleAnimation(Sequence<Frame> timeline) {
         this.timeline = timeline;
     }
 
     @Override
-    public Sequence<Frame.Instance> getTimeline() {
+    public Sequence<Frame> getTimeline() {
         return timeline;
     }
 
     @Override
     public int playFrame(World world, Vector3i position) {
-        if (lastFrame != null) {
-            lastFrame.reset(world, lastPosition, BlockChangeFlag.NONE);
+        if (history != null) {
+            history.apply(world, position, BlockChangeFlag.NONE);
         }
 
-        lastFrame = timeline.next();
-        lastPosition = position;
-        lastFrame.paste(world, position, BlockChangeFlag.NONE);
+        Frame frame = timeline.next();
+        history = frame.apply(world, position, BlockChangeFlag.NONE);
 
-        return lastFrame.getDuration();
+        return frame.getDuration();
     }
 }

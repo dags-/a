@@ -18,7 +18,7 @@ public class RepeatAnimation implements Animation {
     }
 
     @Override
-    public Sequence<Frame.Instance> getTimeline() {
+    public Sequence<Frame> getTimeline() {
         return animation.getTimeline();
     }
 
