@@ -3,10 +3,12 @@ package me.dags.animation.animation;
 import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.ImmutableList;
 import me.dags.animation.Animator;
-import me.dags.animation.Sequence;
 import me.dags.animation.condition.Aggregator;
 import me.dags.animation.condition.Condition;
 import me.dags.animation.frame.Frame;
+import me.dags.animation.frame.FrameList;
+import me.dags.animation.util.Sequence;
+import me.dags.animation.util.SequenceProvider;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.world.World;
 
@@ -20,10 +22,12 @@ import java.util.List;
  */
 public class AnimationHandler {
 
-    private final List<AnimationFactory> factories;
-    private final List<Condition<?>> triggers;
-    private final List<Frame> frames;
+    private final String name;
+    private final String world;
     private final Vector3i origin;
+    private final SequenceProvider<Frame> frames;
+    private final List<AnimationFactory> factories;
+    private final List<List<Condition<?>>> triggers;
 
     private AnimationTask animationTask = null;
     private Task task = null;
@@ -33,6 +37,32 @@ public class AnimationHandler {
         this.triggers = ImmutableList.copyOf(builder.triggers);
         this.frames = builder.frames;
         this.origin = builder.origin;
+        this.world = builder.world;
+        this.name = builder.name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getWorld() {
+        return world;
+    }
+
+    public Vector3i getOrigin() {
+        return origin;
+    }
+
+    public SequenceProvider<Frame> getFrames() {
+        return frames;
+    }
+
+    public List<AnimationFactory> getFactories() {
+        return factories;
+    }
+
+    public List<List<Condition<?>>> getTriggers() {
+        return triggers;
     }
 
     public boolean isActive() {
@@ -41,15 +71,18 @@ public class AnimationHandler {
 
     public void process(World world, Aggregator active) {
         if (!isActive()) {
-            if (active.containsAll(triggers)) {
-                start(world);
+            for (List<Condition<?>> trigger : triggers) {
+                if (active.containsAll(trigger)) {
+                    start(world);
+                    return;
+                }
             }
         }
     }
 
     public void start(World world) {
         if (animationTask == null || animationTask.isComplete()) {
-            Animation animation = new SimpleAnimation(Sequence.of(frames));
+            Animation animation = new SimpleAnimation(frames.getSequence());
 
             for (AnimationFactory factory : factories) {
                 animation = factory.create(animation);
@@ -91,27 +124,53 @@ public class AnimationHandler {
 
     public static class Builder {
 
+        private String name;
+        private String world;
+        private Vector3i origin = null;
+        private SequenceProvider<Frame> frames = null;
         private List<AnimationFactory> factories = new LinkedList<>();
-        private List<Condition<?>> triggers = new LinkedList<>();
-        private List<Frame> frames = Collections.emptyList();
-        private Vector3i origin = Vector3i.ZERO;
+        private List<List<Condition<?>>> triggers = new LinkedList<>();
 
-        public Builder factories(Collection<AnimationFactory> factories) {
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder world(String world) {
+            this.world = world;
+            return this;
+        }
+
+        public Builder animations(Collection<AnimationFactory> factories) {
             this.factories.addAll(factories);
             return this;
         }
 
-        public Builder factory(AnimationFactory factory) {
+        public Builder animation(AnimationFactory factory) {
             factories.add(factory);
             return this;
         }
 
-        public Builder trigger(Condition<?> trigger) {
-            triggers.add(trigger);
+        public Builder triggers(List<List<Condition<?>>> triggers) {
+            for (List<Condition<?>> conditions : triggers) {
+                trigger(conditions);
+            }
             return this;
         }
 
-        public Builder frames(List<Frame> frames) {
+        public Builder trigger(List<Condition<?>> conditions) {
+            if (!conditions.isEmpty()) {
+                triggers.add(conditions);
+            }
+            return this;
+        }
+
+        public Builder trigger(Condition<?> trigger) {
+            triggers.add(Collections.singletonList(trigger));
+            return this;
+        }
+
+        public Builder sequenceProvider(SequenceProvider<Frame> frames) {
             this.frames = frames;
             return this;
         }
@@ -122,7 +181,13 @@ public class AnimationHandler {
         }
 
         public AnimationHandler build() {
-            return new AnimationHandler(this);
+            AnimationHandler handler = new AnimationHandler(this);
+            name = null;
+            world = null;
+            frames = null;
+            triggers = null;
+            factories = null;
+            return handler;
         }
     }
 }

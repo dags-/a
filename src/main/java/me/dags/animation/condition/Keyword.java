@@ -1,16 +1,36 @@
 package me.dags.animation.condition;
 
+import com.google.gson.JsonObject;
+import me.dags.animation.registry.ConditionRegistry;
+
 /**
  * @author dags <dags@dags.me>
  */
 public class Keyword implements Condition<String> {
 
-    private final String keyword;
     private final String id;
+    private final String name;
+    private final String keyword;
 
-    public Keyword(String id, String keyword) {
+    public Keyword(String name, String keyword) {
+        this.id = getType() + ":" + name;
+        this.name = name;
         this.keyword = keyword;
-        this.id = id;
+    }
+
+    @Override
+    public String getType() {
+        return "keyword";
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -19,8 +39,15 @@ public class Keyword implements Condition<String> {
     }
 
     @Override
-    public String getId() {
-        return id;
+    public JsonObject toJson() {
+        JsonObject object = toTypedJson();
+        object.addProperty("keyword", keyword);
+        return object;
+    }
+
+    @Override
+    public void register(ConditionRegistry registry) {
+        registry.registerTextual(this);
     }
 
     @Override

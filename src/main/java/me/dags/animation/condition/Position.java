@@ -1,39 +1,63 @@
 package me.dags.animation.condition;
 
-import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
-import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.World;
+import com.google.gson.JsonObject;
+import me.dags.animation.registry.ConditionRegistry;
+import me.dags.animation.util.Serializers;
 
 /**
  * @author dags <dags@dags.me>
  */
-public class Position implements Condition<Location<World>> {
+public class Position implements Condition<Vector3i> {
 
     private final String id;
+    private final String name;
     private final String world;
     private final Vector3i min;
     private final Vector3i max;
 
-    public Position(String id, String world, Vector3i min, Vector3i max) {
-        this.id = id;
+    public Position(String name, String world, Vector3i min, Vector3i max) {
+        this.id = getType() + ":" + name;
+        this.name = name;
         this.world = world;
         this.min = min;
         this.max = max;
     }
 
     @Override
-    public String getId() {
-        return null;
+    public String getType() {
+        return "position";
     }
 
     @Override
-    public boolean test(Location<World> location) {
-        if (location.getExtent().getName().equals(world)) {
-            Vector3d pos = location.getPosition();
-            return greater(pos, min) && lesser(pos, max);
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public boolean test(Vector3i position) {
+        return greater(position, min) && lesser(position, max);
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject object = toTypedJson();
+        object.addProperty("world", world);
+        object.add("min", Serializers.vector(min));
+        object.add("max", Serializers.vector(max));
+        return object;
+    }
+
+    @Override
+    public void register(ConditionRegistry registry) {
+        if (registry.register(this)) {
+            registry.getWorldConditions(world).registerPositional(this);
         }
-        return false;
     }
 
     @Override
@@ -44,7 +68,6 @@ public class Position implements Condition<Location<World>> {
         Position position = (Position) o;
 
         return id != null ? id.equals(position.id) : position.id == null;
-
     }
 
     @Override
@@ -52,11 +75,30 @@ public class Position implements Condition<Location<World>> {
         return id != null ? id.hashCode() : 0;
     }
 
-    private boolean greater(Vector3d pos, Vector3i min) {
+    private boolean greater(Vector3i pos, Vector3i min) {
         return pos.getX() >= min.getX() && pos.getY() >= min.getY() && pos.getZ() >= min.getZ();
     }
 
-    private boolean lesser(Vector3d pos, Vector3i max) {
+    private boolean lesser(Vector3i pos, Vector3i max) {
         return pos.getX() <= max.getX() && pos.getY() <= max.getY() && pos.getZ() <= max.getZ();
+    }
+
+    public static class Interact extends Position  {
+
+        public Interact(String name, String world, Vector3i min, Vector3i max) {
+            super(name, world, min, max);
+        }
+
+        @Override
+        public String getType() {
+            return "interact";
+        }
+
+        @Override
+        public void register(ConditionRegistry registry) {
+            if (registry.register(this)) {
+                registry.getWorldConditions(super.world).registerInteractable(this);
+            }
+        }
     }
 }

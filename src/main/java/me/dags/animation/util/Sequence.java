@@ -1,4 +1,4 @@
-package me.dags.animation;
+package me.dags.animation.util;
 
 import com.google.common.collect.ImmutableList;
 
@@ -18,15 +18,19 @@ public class Sequence<T> {
         this.elements = list;
     }
 
+    private List<T> getElements() {
+        return elements;
+    }
+
     public boolean hasNext() {
         int next = pos + direction;
-        return next > -1 && next < elements.size();
+        return next > -1 && next < getElements().size();
     }
 
     public T next() {
         if (hasNext()) {
             pos += direction;
-            return elements.get(pos);
+            return getElements().get(pos);
         }
         throw new ArrayIndexOutOfBoundsException(pos + direction);
     }
@@ -46,7 +50,7 @@ public class Sequence<T> {
     }
 
     public Sequence<T> goToEnd() {
-        pos = elements.size();
+        pos = getElements().size();
         return this;
     }
 

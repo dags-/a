@@ -2,6 +2,8 @@ package me.dags.animation.frame;
 
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.animation.animation.AnimationHandler;
+import me.dags.animation.util.Sequence;
+import me.dags.animation.util.SequenceProvider;
 import me.dags.commandbus.format.FMT;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
@@ -12,12 +14,11 @@ import org.spongepowered.api.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author dags <dags@dags.me>
  */
-public class Recorder {
+public class FrameRecorder implements SequenceProvider<Frame> {
 
     private final List<Frame> frames = new ArrayList<>();
     private final ItemType wand;
@@ -27,7 +28,7 @@ public class Recorder {
     private Vector3i pos2 = Vector3i.ZERO;
     private Vector3i origin = Vector3i.ZERO;
 
-    public Recorder(ItemType wand) {
+    public FrameRecorder(ItemType wand) {
         this.wand = wand;
     }
 
@@ -47,11 +48,14 @@ public class Recorder {
         tester = handler;
     }
 
-    public Optional<Frame> getFrame(int number) {
-        if (number > -1 && number < frames.size()) {
-            return Optional.ofNullable(frames.get(number));
-        }
-        return Optional.empty();
+    @Override
+    public String getId() {
+        return "recorder";
+    }
+
+    @Override
+    public Sequence<Frame> getSequence() {
+        return Sequence.of(getFrames());
     }
 
     public List<Frame> getFrames() {
@@ -134,11 +138,11 @@ public class Recorder {
         }
     }
 
-    public void goToEnd(Player player) {
-        goToFrame(player, frames.size() - 1);
+    public void loadLast(Player player) {
+        loadFrame(player, frames.size() - 1);
     }
 
-    public void goToFrame(Player player, int number) {
+    public void loadFrame(Player player, int number) {
         if (number < 0 || number >= frames.size()) {
             FMT.error("Frame number must be in range: ").stress("%s - %s", 0, frames.size() - 1).tell(player);
             return;

@@ -2,7 +2,7 @@ package me.dags.animation.animation;
 
 import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.ImmutableList;
-import me.dags.animation.Sequence;
+import me.dags.animation.util.Sequence;
 import me.dags.animation.frame.Frame;
 import org.spongepowered.api.world.World;
 

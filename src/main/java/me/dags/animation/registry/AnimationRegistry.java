@@ -6,6 +6,7 @@ import me.dags.animation.animation.PushPullAnimation;
 import me.dags.animation.animation.RepeatAnimation;
 import org.spongepowered.api.registry.CatalogRegistryModule;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,11 @@ import java.util.Optional;
 public class AnimationRegistry implements CatalogRegistryModule<AnimationFactory> {
 
     private final Map<String, AnimationFactory> factories = new HashMap<>();
+    private final Path root;
+
+    public AnimationRegistry(Path dir) {
+        this.root = dir;
+    }
 
     public boolean register(AnimationFactory factory) {
         if (!factories.containsKey(factory.getId())) {
@@ -40,5 +46,6 @@ public class AnimationRegistry implements CatalogRegistryModule<AnimationFactory
     public void registerDefaults() {
         register(new PushPullAnimation.Factory());
         register(new RepeatAnimation.Factory());
+        // load from file
     }
 }

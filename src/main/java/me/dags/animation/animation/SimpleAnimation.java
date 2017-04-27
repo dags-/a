@@ -1,7 +1,7 @@
 package me.dags.animation.animation;
 
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.animation.Sequence;
+import me.dags.animation.util.Sequence;
 import me.dags.animation.frame.Frame;
 import org.spongepowered.api.world.BlockChangeFlag;
 import org.spongepowered.api.world.World;

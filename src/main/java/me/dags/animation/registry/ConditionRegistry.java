@@ -1,63 +1,64 @@
 package me.dags.animation.registry;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonElement;
 import me.dags.animation.condition.Condition;
+import me.dags.animation.condition.WorldConditions;
+import me.dags.animation.util.Deserializers;
+import me.dags.animation.util.Utils;
 import org.spongepowered.api.registry.CatalogRegistryModule;
-import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * @author dags <dags@dags.me>
  */
 public class ConditionRegistry implements CatalogRegistryModule<Condition> {
 
-    private static final Map<String, Condition<?>> conditions = new ConcurrentHashMap<>();
-
-    private final Map<String, Condition<Location<World>>> interactable = new ConcurrentHashMap<>();
-    private final Map<String, Condition<Location<World>>> positional = new ConcurrentHashMap<>();
+    private final Map<String, WorldConditions> managers = new ConcurrentHashMap<>();
     private final Map<String, Condition<String>> textual = new ConcurrentHashMap<>();
+    private final Map<String, Condition<?>> conditions = new ConcurrentHashMap<>();
+    private final Path root;
 
-    public boolean registerInteractable(Condition<Location<World>> condition) {
-        if (!conditions.containsKey(condition.getName())) {
+    public ConditionRegistry(Path path) {
+        this.root = path;
+    }
+
+    public WorldConditions getWorldConditions(String world) {
+        return Utils.ensure(managers, world, newManager(world));
+    }
+
+    public WorldConditions getWorldConditions(World world) {
+        return getWorldConditions(world.getName());
+    }
+
+    public boolean register(Condition<?> condition) {
+        if (!conditions.containsKey(condition.getId())) {
             conditions.put(condition.getId(), condition);
-            interactable.put(condition.getId(), condition);
             return true;
         }
         return false;
     }
 
-    public boolean registerPositional(Condition<Location<World>> condition) {
-        if (!conditions.containsKey(condition.getName())) {
-            conditions.put(condition.getId(), condition);
-            positional.put(condition.getId(), condition);
-            return true;
-        }
-        return false;
-    }
-
-    public boolean registerTextual(Condition<String> condition) {
-        if (!conditions.containsKey(condition.getName())) {
-            conditions.put(condition.getId(), condition);
+    public void registerTextual(Condition<String> condition) {
+        if (register(condition)) {
             textual.put(condition.getId(), condition);
-            return true;
         }
-        return false;
-    }
-    public Collection<Condition<Location<World>>> getInteractable() {
-        return ImmutableList.copyOf(interactable.values());
     }
 
-    public Collection<Condition<Location<World>>> getPositional() {
-        return ImmutableList.copyOf(positional.values());
+    public Iterable<Condition<String>> getTextual() {
+        return textual.values();
     }
 
-    public Collection<Condition<String>> getTextual() {
-        return ImmutableList.copyOf(textual.values());
+    public Optional<Condition<?>> getCondition(String id) {
+        return Optional.ofNullable(conditions.get(id));
     }
 
     @Override
@@ -68,5 +69,24 @@ public class ConditionRegistry implements CatalogRegistryModule<Condition> {
     @Override
     public Collection<Condition> getAll() {
         return ImmutableList.copyOf(conditions.values());
+    }
+
+    @Override
+    public void registerDefaults() {
+        Utils.readDir(root)
+                .filter(Utils::isJsonFile)
+                .map(Utils::read)
+                .filter(JsonElement::isJsonObject)
+                .map(Deserializers::keyword)
+                .filter(Objects::nonNull)
+                .forEach(keyword -> keyword.register(this));
+    }
+
+    private Supplier<WorldConditions> newManager(String world) {
+        return () -> {
+            WorldConditions conditions = new WorldConditions(this, root.resolve(world));
+            conditions.loadDefaults();
+            return conditions;
+        };
     }
 }

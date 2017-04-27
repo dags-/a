@@ -1,38 +1,65 @@
 package me.dags.animation.condition;
 
 import com.flowpowered.math.vector.Vector3i;
-import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.World;
+import com.google.gson.JsonObject;
+import me.dags.animation.registry.ConditionRegistry;
+import me.dags.animation.util.Serializers;
 
 /**
  * @author dags <dags@dags.me>
  */
-public class Radius implements Condition<Location<World>> {
+public class Radius implements Condition<Vector3i> {
 
     private final String id;
+    private final String name;
     private final String world;
     private final Vector3i position;
+    private final int radius;
     private final int radiusSq;
 
-    public Radius(String id, String world, Vector3i position, int radius) {
-        this.id = id;
+    public Radius(String name, String world, Vector3i position, int radius) {
+        this.id = getType() + ":" + name;
+        this.name = name;
         this.world = world;
         this.position = position;
+        this.radius = radius;
         this.radiusSq = radius * radius;
     }
 
     @Override
-    public boolean test(Location<World> location) {
-        if (location.getExtent().getName().equals(world)) {
-            return location.getBlockPosition().distanceSquared(position) <= radiusSq;
-        }
-        return false;
+    public String getType() {
+        return "radius";
     }
 
     @Override
     public String getId() {
         return id;
+    }
 
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public boolean test(Vector3i position) {
+        return this.position.distanceSquared(position) <= radiusSq;
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject object = toTypedJson();
+        object.addProperty("world", world);
+        object.addProperty("radius", radius);
+        object.add("position", Serializers.vector(position));
+        return object;
+    }
+
+    @Override
+    public void register(ConditionRegistry registry) {
+        if (registry.register(this)) {
+            registry.getWorldConditions(world).registerPositional(this);
+        }
     }
 
     @Override

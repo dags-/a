@@ -1,9 +1,12 @@
 package me.dags.animation;
 
 import com.flowpowered.math.vector.Vector3d;
+import com.flowpowered.math.vector.Vector3i;
 import me.dags.animation.animation.AnimationHandler;
 import me.dags.animation.condition.Aggregator;
-import me.dags.animation.frame.Recorder;
+import me.dags.animation.condition.Condition;
+import me.dags.animation.condition.WorldConditions;
+import me.dags.animation.frame.FrameRecorder;
 import me.dags.animation.registry.ConditionRegistry;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.type.HandTypes;
@@ -31,7 +34,7 @@ public class EventHandler {
     public void interactWand(InteractItemEvent.Secondary.MainHand event, @Root Player player) {
         Optional<Vector3d> position = event.getInteractionPoint();
         if (position.isPresent()) {
-            Optional<Recorder> recorder = Animator.getRecorder(player.getUniqueId());
+            Optional<FrameRecorder> recorder = Animator.getRecorder(player.getUniqueId());
             if (recorder.isPresent()) {
                 Optional<ItemType> item = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
                 if (item.filter(i -> i == recorder.get().getWand()).isPresent()) {
@@ -48,19 +51,27 @@ public class EventHandler {
         }
 
         String message = event.getRawMessage().toPlain().trim();
-        ConditionRegistry registry = Animator.getConditions(player.getWorld());
+        ConditionRegistry registry = Animator.getConditionRegistry();
         Aggregator aggregator = Animator.getAggregator(player.getUniqueId());
-        registry.getTextual().stream().filter(condition -> condition.test(message)).forEach(aggregator::add);
+        for (Condition<String> condition : registry.getTextual()) {
+            if (condition.test(message)) {
+                aggregator.add(condition);
+            }
+        }
     }
 
     @Listener (order = Order.POST)
     public void interactBlock(InteractBlockEvent event, @Root Player player) {
         Optional<Location<World>> location = event.getTargetBlock().getLocation();
         if (location.isPresent()) {
-            Location<World> loc = location.get();
-            ConditionRegistry registry = Animator.getConditions(player.getWorld());
+            Vector3i position = location.get().getBlockPosition();
+            WorldConditions conditions = Animator.getConditionRegistry().getWorldConditions(player.getWorld());
             Aggregator aggregator = Animator.getAggregator(player.getUniqueId());
-            registry.getInteractable().stream().filter(condition -> condition.test(loc)).forEach(aggregator::add);
+            for (Condition<Vector3i> condition : conditions.getInteractable()) {
+                if (condition.test(position)) {
+                    aggregator.add(condition);
+                }
+            }
         }
     }
 
@@ -75,9 +86,13 @@ public class EventHandler {
 
             // update player position
             Aggregator aggregator = Animator.getAggregator(player.getUniqueId());
-            Location<World> location = player.getLocation();
-            Animator.getConditions(world).getPositional().stream()
-                    .filter(condition -> condition.test(location)).forEach(aggregator::add);
+            Vector3i position = player.getLocation().getBlockPosition();
+            WorldConditions conditions = Animator.getConditionRegistry().getWorldConditions(world);
+            for (Condition<Vector3i> condition : conditions.getPositional()) {
+                if (condition.test(position)) {
+                    aggregator.add(condition);
+                }
+            }
 
             // handle conditions
             for (AnimationHandler handler : Animator.getHandlers(world)) {

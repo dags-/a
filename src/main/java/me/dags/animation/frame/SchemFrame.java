@@ -80,7 +80,7 @@ public class SchemFrame implements Frame {
     }
 
     public static List<Frame> readAll(DataView view) throws Exception {
-        Optional<List<DataView>> views = view.getViewList(DataQuery.of("frames"));
+        Optional<List<DataView>> views = view.getViewList(DataQuery.of("sequenceProvider"));
         if (views.isPresent()) {
             ImmutableList.Builder<Frame> frames = ImmutableList.builder();
             for (DataView data : views.get()) {

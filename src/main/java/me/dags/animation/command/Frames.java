@@ -3,7 +3,7 @@ package me.dags.animation.command;
 import me.dags.animation.Animator;
 import me.dags.animation.animation.AnimationFactory;
 import me.dags.animation.animation.AnimationHandler;
-import me.dags.animation.frame.Recorder;
+import me.dags.animation.frame.FrameRecorder;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
@@ -20,8 +20,8 @@ import java.util.Optional;
  */
 public class Frames {
 
-    private Optional<Recorder> getRecorder(Player player) {
-        Optional<Recorder> recorder = Animator.getRecorder(player.getUniqueId());
+    private Optional<FrameRecorder> getRecorder(Player player) {
+        Optional<FrameRecorder> recorder = Animator.getRecorder(player.getUniqueId());
         if (!recorder.isPresent()) {
             FMT.error("You are not currently recording").tell(player);
         }
@@ -41,7 +41,7 @@ public class Frames {
 
     @Command(alias = "add", parent = "frame")
     public void add(@Caller Player player, @One("duration") int duration) {
-        Optional<Recorder> recorder = getRecorder(player);
+        Optional<FrameRecorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
             recorder.get().addFrame(player,  duration);
         }
@@ -49,7 +49,7 @@ public class Frames {
 
     @Command(alias = "replace", parent = "frame")
     public void replace(@Caller Player player, @One("index") int index, @One("duration") int duration) {
-        Optional<Recorder> recorder = getRecorder(player);
+        Optional<FrameRecorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
             recorder.get().setFrame(player, index, duration);
         }
@@ -57,7 +57,7 @@ public class Frames {
 
     @Command(alias = "duration", parent = "frame")
     public void setDuration(@Caller Player player, @One("duration") int duration) {
-        Optional<Recorder> recorder = getRecorder(player);
+        Optional<FrameRecorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
             recorder.get().setDuration(player, duration);
         }
@@ -65,7 +65,7 @@ public class Frames {
 
     @Command(alias = "duration", parent = "frame")
     public void setDuration(@Caller Player player, @One("index") int index, @One("duration") int duration) {
-        Optional<Recorder> recorder = getRecorder(player);
+        Optional<FrameRecorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
             recorder.get().setDuration(player, index, duration);
         }
@@ -73,30 +73,30 @@ public class Frames {
 
     @Command(alias = "goto", parent = "frame")
     public void goTo(@Caller Player player, @One("index") int index) {
-        Optional<Recorder> recorder = getRecorder(player);
+        Optional<FrameRecorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
-            recorder.get().goToFrame(player, index);
+            recorder.get().loadFrame(player, index);
         }
     }
 
     @Command(alias = "last", parent = "frame")
     public void last(@Caller Player player) {
-        Optional<Recorder> recorder = getRecorder(player);
+        Optional<FrameRecorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
-            recorder.get().goToEnd(player);
+            recorder.get().loadLast(player);
         }
     }
 
     @Command(alias = "test", parent = "frame")
     public void test(@Caller Player player, @One("animation") AnimationFactory factory) {
-        Optional<Recorder> recorder = getRecorder(player);
+        Optional<FrameRecorder> recorder = getRecorder(player);
 
         if (recorder.isPresent()) {
             FMT.info("Starting test animation...").tell(player);
             AnimationHandler handler = AnimationHandler.builder()
-                    .frames(recorder.get().getFrames())
+                    .sequenceProvider(recorder.get())
                     .origin(recorder.get().getOrigin())
-                    .factory(factory)
+                    .animation(factory)
                     .build();
 
             recorder.get().setTester(handler);
@@ -106,7 +106,7 @@ public class Frames {
 
     @Command(alias = "stop", parent = "frame")
     public void stop(@Caller Player player) {
-        Optional<Recorder> recorder = getRecorder(player);
+        Optional<FrameRecorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
             FMT.info("Stopping test animation").tell(player);
             AnimationHandler handler = recorder.get().getTester();
