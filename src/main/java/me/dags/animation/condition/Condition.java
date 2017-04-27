@@ -1,4 +1,4 @@
-package me.dags.animation.trigger;
+package me.dags.animation.condition;
 
 import org.spongepowered.api.CatalogType;
 

@@ -14,9 +14,7 @@ public interface Animation {
 
     boolean hasFinished();
 
-    default void reset() {
-        getTimeline().goToStart();
-    }
+    void reset();
 
     int play(World world, Vector3i position);
 }

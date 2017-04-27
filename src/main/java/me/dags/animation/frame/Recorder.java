@@ -3,6 +3,8 @@ package me.dags.animation.frame;
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.animation.animation.AnimationHandler;
 import me.dags.commandbus.format.FMT;
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.world.BlockChangeFlag;
@@ -99,6 +101,37 @@ public class Recorder {
         FMT.info("Setting frame ").stress(number).tell(source);
         Frame frame = SchemFrame.at(source.getWorld(), pos1, pos2, origin, duration);
         frames.set(number, frame);
+    }
+
+    public void setDuration(Player source, int index, int duration) {
+        if (index < 0 || index >= frames.size()) {
+            FMT.error("Frame number must be in range: ").stress("%s - %s", 0, frames.size() - 1).tell(source);
+            return;
+        }
+
+        Frame current = frames.get(index);
+        if (current.getDuration() == duration) {
+            FMT.error("Frame ").stress(index).error(" already has a duration of ").stress(duration).tell(source);
+            return;
+        }
+
+        FMT.info("Setting frame ").stress(index).info(" duration to ").stress(duration);
+        DataContainer container = current.toContainer().set(DataQuery.of("duration"), duration);
+        Frame frame = SchemFrame.read(container);
+        frames.set(index, frame);
+    }
+
+    public void setDuration(Player source, int duration) {
+        FMT.info("Setting all frame durations to ").stress(duration).tell(source);
+
+        for (int i = 0; i < frames.size(); i++) {
+            Frame current = frames.get(i);
+            if (current.getDuration() != duration) {
+                DataContainer container = current.toContainer().set(DataQuery.of("duration"), duration);
+                Frame frame = SchemFrame.read(container);
+                frames.set(i, frame);
+            }
+        }
     }
 
     public void goToEnd(Player player) {

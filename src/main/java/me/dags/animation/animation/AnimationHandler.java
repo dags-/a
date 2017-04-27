@@ -4,15 +4,16 @@ import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.ImmutableList;
 import me.dags.animation.Animator;
 import me.dags.animation.Sequence;
+import me.dags.animation.condition.Aggregator;
+import me.dags.animation.condition.Condition;
 import me.dags.animation.frame.Frame;
 import org.spongepowered.api.scheduler.Task;
-import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.world.World;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author dags <dags@dags.me>
@@ -20,7 +21,7 @@ import java.util.Set;
 public class AnimationHandler {
 
     private final List<AnimationFactory> factories;
-    private final List<Context> triggers;
+    private final List<Condition<?>> triggers;
     private final List<Frame> frames;
     private final Vector3i origin;
 
@@ -34,9 +35,13 @@ public class AnimationHandler {
         this.origin = builder.origin;
     }
 
-    public void process(World world, Set<Context> contexts) {
-        if (animationTask == null || animationTask.isComplete()) {
-            if (contexts.containsAll(triggers)) {
+    public boolean isActive() {
+        return animationTask == null || animationTask.isComplete();
+    }
+
+    public void process(World world, Aggregator active) {
+        if (!isActive()) {
+            if (active.containsAll(triggers)) {
                 start(world);
             }
         }
@@ -47,7 +52,7 @@ public class AnimationHandler {
             Animation animation = new SimpleAnimation(Sequence.of(frames));
 
             for (AnimationFactory factory : factories) {
-                animation = factory.wrap(animation);
+                animation = factory.create(animation);
             }
 
             animationTask = AnimationTask.builder()
@@ -87,16 +92,21 @@ public class AnimationHandler {
     public static class Builder {
 
         private List<AnimationFactory> factories = new LinkedList<>();
-        private List<Context> triggers = new LinkedList<>();
+        private List<Condition<?>> triggers = new LinkedList<>();
         private List<Frame> frames = Collections.emptyList();
         private Vector3i origin = Vector3i.ZERO;
+
+        public Builder factories(Collection<AnimationFactory> factories) {
+            this.factories.addAll(factories);
+            return this;
+        }
 
         public Builder factory(AnimationFactory factory) {
             factories.add(factory);
             return this;
         }
 
-        public Builder trigger(Context trigger) {
+        public Builder trigger(Condition<?> trigger) {
             triggers.add(trigger);
             return this;
         }

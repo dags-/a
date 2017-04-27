@@ -30,6 +30,11 @@ public class SimpleAnimation implements Animation {
     }
 
     @Override
+    public void reset() {
+        timeline.reset();
+    }
+
+    @Override
     public int play(World world, Vector3i position) {
         if (history != null) {
             history.apply(world, position, BlockChangeFlag.NONE);

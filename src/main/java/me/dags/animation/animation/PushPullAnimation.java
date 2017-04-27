@@ -40,4 +40,22 @@ public class PushPullAnimation implements Animation {
         animation.getTimeline().reverse();
         pull = !pull;
     }
+
+    public static class Factory implements AnimationFactory {
+
+        @Override
+        public Animation create(Animation animation) {
+            return new PushPullAnimation(animation);
+        }
+
+        @Override
+        public String getId() {
+            return "push-pull";
+        }
+
+        @Override
+        public String getName() {
+            return getId();
+        }
+    }
 }

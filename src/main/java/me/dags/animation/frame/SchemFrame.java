@@ -33,24 +33,23 @@ public class SchemFrame implements Frame {
     public SchemFrame(Schematic schematic) {
         Optional<Integer> duration = schematic.getMetadata().getInt(DataQuery.of("duration"));
         if (!duration.isPresent()) {
-            throw new UnsupportedOperationException("No duration specified in frame!");
+            throw new UnsupportedOperationException("No duration specified for the frame!");
         }
         this.schematic = schematic;
         this.duration = duration.get();
     }
 
     @Override
-    public void applyFast(World world, Vector3i position, BlockChangeFlag flag) {
-        Location<World> location = new Location<>(world, position);
-        schematic.apply(location, flag, Animator.getCause());
-    }
-
-    @Override
     public Frame.History apply(World world, Vector3i position, BlockChangeFlag flag) {
+        // record the history
         Vector3i min = position.add(schematic.getBlockMin());
         Vector3i max = position.add(schematic.getBlockMax());
         BlockVolume history = world.getBlockView(min, max).getBlockCopy();
-        applyFast(world, position, flag);
+
+        // paste the frame
+        Location<World> location = new Location<>(world, position);
+        schematic.apply(location, flag, Animator.getCause());
+
         return new VolumeHistory(history);
     }
 
@@ -96,7 +95,7 @@ public class SchemFrame implements Frame {
         return read(DataFormats.NBT.readFrom(inputStream));
     }
 
-    public static Frame read(DataView view) throws Exception {
+    public static Frame read(DataView view) {
         Schematic schematic = DataTranslators.SCHEMATIC.translate(view);
         return new SchemFrame(schematic);
     }

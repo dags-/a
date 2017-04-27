@@ -1,4 +1,4 @@
-package me.dags.animation.trigger;
+package me.dags.animation.condition;
 
 /**
  * @author dags <dags@dags.me>
@@ -28,14 +28,14 @@ public class Keyword implements Condition<String> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Keyword keyword1 = (Keyword) o;
+        Keyword keyword = (Keyword) o;
 
-        return keyword != null ? keyword.equals(keyword1.keyword) : keyword1.keyword == null;
+        return id != null ? id.equals(keyword.id) : keyword.id == null;
 
     }
 
     @Override
     public int hashCode() {
-        return keyword != null ? keyword.hashCode() : 0;
+        return id != null ? id.hashCode() : 0;
     }
 }

@@ -28,10 +28,33 @@ public class RepeatAnimation implements Animation {
     }
 
     @Override
+    public void reset() {
+        animation.reset();
+    }
+
+    @Override
     public int play(World world, Vector3i position) {
         if (animation.hasFinished()) {
             animation.reset();
         }
         return animation.play(world, position);
+    }
+
+    public static class Factory implements AnimationFactory {
+
+        @Override
+        public Animation create(Animation animation) {
+            return new RepeatAnimation(animation);
+        }
+
+        @Override
+        public String getId() {
+            return "repeat";
+        }
+
+        @Override
+        public String getName() {
+            return getId();
+        }
     }
 }

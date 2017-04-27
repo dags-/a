@@ -10,8 +10,6 @@ import org.spongepowered.api.world.World;
  */
 public interface Frame {
 
-    void applyFast(World world, Vector3i position, BlockChangeFlag flag);
-
     History apply(World world, Vector3i position, BlockChangeFlag flag);
 
     int getDuration();

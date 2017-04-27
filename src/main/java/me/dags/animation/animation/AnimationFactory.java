@@ -1,9 +1,11 @@
 package me.dags.animation.animation;
 
+import org.spongepowered.api.CatalogType;
+
 /**
  * @author dags <dags@dags.me>
  */
-public interface AnimationFactory {
+public interface AnimationFactory extends CatalogType {
 
-    Animation wrap(Animation animation);
+    Animation create(Animation animation);
 }

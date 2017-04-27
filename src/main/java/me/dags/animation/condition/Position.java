@@ -1,4 +1,4 @@
-package me.dags.animation.trigger;
+package me.dags.animation.condition;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
@@ -41,19 +41,15 @@ public class Position implements Condition<Location<World>> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Position locatable = (Position) o;
+        Position position = (Position) o;
 
-        if (world != null ? !world.equals(locatable.world) : locatable.world != null) return false;
-        if (min != null ? !min.equals(locatable.min) : locatable.min != null) return false;
-        return max != null ? max.equals(locatable.max) : locatable.max == null;
+        return id != null ? id.equals(position.id) : position.id == null;
+
     }
 
     @Override
     public int hashCode() {
-        int result = world != null ? world.hashCode() : 0;
-        result = 31 * result + (min != null ? min.hashCode() : 0);
-        result = 31 * result + (max != null ? max.hashCode() : 0);
-        return result;
+        return id != null ? id.hashCode() : 0;
     }
 
     private boolean greater(Vector3d pos, Vector3i min) {

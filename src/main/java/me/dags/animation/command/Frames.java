@@ -1,8 +1,8 @@
 package me.dags.animation.command;
 
 import me.dags.animation.Animator;
+import me.dags.animation.animation.AnimationFactory;
 import me.dags.animation.animation.AnimationHandler;
-import me.dags.animation.animation.PushPullAnimation;
 import me.dags.animation.frame.Recorder;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
@@ -32,7 +32,7 @@ public class Frames {
     public void record(@Caller Player player) {
         Optional<ItemType> inHand = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
         if (inHand.isPresent()) {
-            FMT.info("Starting new recorder...").tell(player);
+            FMT.info("Frame recorder wand bound to ").stress(inHand.get().getName()).tell(player);
             Animator.createRecorder(player.getUniqueId(), inHand.get());
         } else {
             FMT.error("You must be holding an item to use as your wand").tell(player);
@@ -47,16 +47,48 @@ public class Frames {
         }
     }
 
-    @Command(alias = "set", parent = "frame")
-    public void set(@Caller Player player, @One("index") int number, @One("duration") int duration) {
+    @Command(alias = "replace", parent = "frame")
+    public void replace(@Caller Player player, @One("index") int index, @One("duration") int duration) {
         Optional<Recorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
-            recorder.get().setFrame(player, number, duration);
+            recorder.get().setFrame(player, index, duration);
+        }
+    }
+
+    @Command(alias = "duration", parent = "frame")
+    public void setDuration(@Caller Player player, @One("duration") int duration) {
+        Optional<Recorder> recorder = getRecorder(player);
+        if (recorder.isPresent()) {
+            recorder.get().setDuration(player, duration);
+        }
+    }
+
+    @Command(alias = "duration", parent = "frame")
+    public void setDuration(@Caller Player player, @One("index") int index, @One("duration") int duration) {
+        Optional<Recorder> recorder = getRecorder(player);
+        if (recorder.isPresent()) {
+            recorder.get().setDuration(player, index, duration);
+        }
+    }
+
+    @Command(alias = "goto", parent = "frame")
+    public void goTo(@Caller Player player, @One("index") int index) {
+        Optional<Recorder> recorder = getRecorder(player);
+        if (recorder.isPresent()) {
+            recorder.get().goToFrame(player, index);
+        }
+    }
+
+    @Command(alias = "last", parent = "frame")
+    public void last(@Caller Player player) {
+        Optional<Recorder> recorder = getRecorder(player);
+        if (recorder.isPresent()) {
+            recorder.get().goToEnd(player);
         }
     }
 
     @Command(alias = "test", parent = "frame")
-    public void test(@Caller Player player) {
+    public void test(@Caller Player player, @One("animation") AnimationFactory factory) {
         Optional<Recorder> recorder = getRecorder(player);
 
         if (recorder.isPresent()) {
@@ -64,8 +96,7 @@ public class Frames {
             AnimationHandler handler = AnimationHandler.builder()
                     .frames(recorder.get().getFrames())
                     .origin(recorder.get().getOrigin())
-                    .factory(PushPullAnimation::new)
-                   // .factory(RepeatAnimation::new)
+                    .factory(factory)
                     .build();
 
             recorder.get().setTester(handler);
