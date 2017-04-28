@@ -30,7 +30,7 @@ public class Conditions {
         Optional<ItemType> inHand = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
         if (inHand.isPresent()) {
             FMT.info("Condition recorder wand bound to ").stress(inHand.get().getName()).tell(player);
-            Animator.createPositionRecorder(player.getUniqueId(), inHand.get());
+            Animator.createConditionRecorder(player.getUniqueId(), inHand.get());
         } else {
             FMT.error("You must be holding an item to use as your wand").tell(player);
         }

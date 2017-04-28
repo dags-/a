@@ -47,10 +47,11 @@ public class Animator {
     private static Animator instance;
 
     private final Cause cause;
+    private final EventHandler eventHandler;
     private final FrameRegistry frameRegistry;
     private final HandlerRegistry handlerRegistry;
-    private final ConditionRegistry conditionRegistry;
     private final AnimationRegistry animationRegistry;
+    private final ConditionRegistry conditionRegistry;
     private final Map<UUID, Aggregator> aggregators = new ConcurrentHashMap<>();
     private final Cache<UUID, FrameRecorder> frameRecorders = Caffeine.newBuilder()
             .expireAfterAccess(15, TimeUnit.MINUTES)
@@ -64,12 +65,13 @@ public class Animator {
 
     @Inject
     public Animator(PluginContainer container, @ConfigDir(sharedRoot = false) Path dir) {
+        instance = this;
         cause = Cause.source(container).build();
+        eventHandler = new EventHandler();
         frameRegistry = new FrameRegistry(dir.resolve("frames"));
         handlerRegistry = new HandlerRegistry(dir.resolve("handlers"));
         conditionRegistry = new ConditionRegistry(dir.resolve("conditions"));
         animationRegistry = new AnimationRegistry(dir.resolve("animations"));
-        instance = this;
     }
 
     @Listener
@@ -82,9 +84,7 @@ public class Animator {
     @Listener
     public void init(GameInitializationEvent event) {
         CommandBus.create().registerPackageOf(Frames.class).submit(this);
-        EventHandler eventHandler = new EventHandler();
         Sponge.getEventManager().registerListeners(this, eventHandler);
-        Task.builder().execute(eventHandler::process).intervalTicks(10).submit(this);
     }
 
     @Listener
@@ -95,12 +95,16 @@ public class Animator {
     @Listener
     public void reload(GameReloadEvent event) {
         aggregators.clear();
-        handlerRegistry.clear();
         frameRecorders.invalidateAll();
         positionRecorders.invalidateAll();
+
         getFrameRegistry().registerDefaults();
+        getHandlerRegistry().registerDefaults();
         getConditionRegistry().registerDefaults();
         getAnimationRegistry().registerDefaults();
+
+        Sponge.getScheduler().getScheduledTasks(this).forEach(Task::cancel);
+        Task.builder().execute(eventHandler::process).intervalTicks(10).submit(this);
     }
 
     public static Cause getCause() {
@@ -111,12 +115,16 @@ public class Animator {
         instance.aggregators.remove(uuid);
     }
 
-    public static Aggregator getAggregator(UUID uuid) {
+    public synchronized static Aggregator getAggregator(UUID uuid) {
         return Utils.ensure(instance.aggregators, uuid, Aggregator::new);
     }
 
     public static FrameRegistry getFrameRegistry() {
         return instance.frameRegistry;
+    }
+
+    public static HandlerRegistry getHandlerRegistry() {
+        return instance.handlerRegistry;
     }
 
     public static ConditionRegistry getConditionRegistry() {
