@@ -28,7 +28,7 @@ public class Frames {
         Optional<ItemType> inHand = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
         if (inHand.isPresent()) {
             FMT.info("Frame recorder wand bound to ").stress(inHand.get().getName()).tell(player);
-            Animator.createRecorder(player.getUniqueId(), inHand.get());
+            Animator.createFrameRecorder(player.getUniqueId(), inHand.get());
         } else {
             FMT.error("You must be holding an item to use as your wand").tell(player);
         }

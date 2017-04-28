@@ -7,6 +7,7 @@ import me.dags.animation.animation.AnimationFactory;
 import me.dags.animation.command.Frames;
 import me.dags.animation.condition.Aggregator;
 import me.dags.animation.condition.Condition;
+import me.dags.animation.condition.ConditionRecorder;
 import me.dags.animation.frame.FrameList;
 import me.dags.animation.frame.FrameRecorder;
 import me.dags.animation.handler.AnimationTask;
@@ -52,6 +53,9 @@ public class Animator {
     private final AnimationRegistry animationRegistry;
     private final Map<UUID, Aggregator> aggregators = new ConcurrentHashMap<>();
     private final Cache<UUID, FrameRecorder> frameRecorders = Caffeine.newBuilder()
+            .expireAfterAccess(15, TimeUnit.MINUTES)
+            .build();
+    private final Cache<UUID, ConditionRecorder> conditionRecorders = Caffeine.newBuilder()
             .expireAfterAccess(15, TimeUnit.MINUTES)
             .build();
     private final Cache<UUID, PositionRecorder> positionRecorders = Caffeine.newBuilder()
@@ -131,18 +135,41 @@ public class Animator {
         return Task.builder().execute(task).intervalTicks(1L).submit(instance);
     }
 
+    public static Optional<? extends PositionRecorder> getRecorder(UUID uuid) {
+        Optional<FrameRecorder> frameRecorder = getFrameRecorder(uuid);
+        if (frameRecorder.isPresent()) {
+            return frameRecorder;
+        }
+
+        Optional<ConditionRecorder> conditionRecorder = getConditionRecorder(uuid);
+        if (conditionRecorder.isPresent()) {
+            return conditionRecorder;
+        }
+
+        return getPositionRecorder(uuid);
+    }
+
     public static Optional<FrameRecorder> getFrameRecorder(UUID uuid) {
         return Optional.ofNullable(instance.frameRecorders.getIfPresent(uuid));
+    }
+
+    public static Optional<ConditionRecorder> getConditionRecorder(UUID uuid) {
+        return Optional.ofNullable(instance.conditionRecorders.getIfPresent(uuid));
     }
 
     public static Optional<PositionRecorder> getPositionRecorder(UUID uuid) {
         return Optional.ofNullable(instance.positionRecorders.getIfPresent(uuid));
     }
 
-    public static FrameRecorder createRecorder(UUID uuid, ItemType wand) {
-        getFrameRecorder(uuid).ifPresent(recorder -> recorder.getTester().complete());
+    public static FrameRecorder createFrameRecorder(UUID uuid, ItemType wand) {
         FrameRecorder recorder = new FrameRecorder(wand);
         instance.frameRecorders.put(uuid, recorder);
+        return recorder;
+    }
+
+    public static PositionRecorder createConditionRecorder(UUID uuid, ItemType wand) {
+        ConditionRecorder recorder = new ConditionRecorder(wand);
+        instance.conditionRecorders.put(uuid, recorder);
         return recorder;
     }
 

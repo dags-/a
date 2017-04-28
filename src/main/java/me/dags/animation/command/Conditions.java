@@ -3,7 +3,6 @@ package me.dags.animation.command;
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.animation.Animator;
 import me.dags.animation.Permissions;
-import me.dags.animation.PositionRecorder;
 import me.dags.animation.condition.*;
 import me.dags.animation.util.Utils;
 import me.dags.commandbus.annotation.Caller;
@@ -29,19 +28,18 @@ public class Conditions {
     @Command(alias = "record", parent = "condition")
     public void wand(@Caller Player player) {
         Optional<ItemType> inHand = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
-        if (!inHand.isPresent()) {
-            FMT.error("You must be holding an item to use as your selection wand").tell(player);
-            return;
+        if (inHand.isPresent()) {
+            FMT.info("Condition recorder wand bound to ").stress(inHand.get().getName()).tell(player);
+            Animator.createPositionRecorder(player.getUniqueId(), inHand.get());
+        } else {
+            FMT.error("You must be holding an item to use as your wand").tell(player);
         }
-
-        FMT.info("Setting your selection wand to item: ").stress(inHand.get().getName()).tell(player);
-        Animator.createRecorder(player.getUniqueId(), inHand.get());
     }
 
     @Permission(Permissions.CONDITION_COMMAND)
     @Command(alias = "position", parent = "condition")
     public void position(@Caller Player player, @One("name") String name) {
-        Optional<PositionRecorder> recorder = Animator.getPositionRecorder(player.getUniqueId());
+        Optional<ConditionRecorder> recorder = Animator.getConditionRecorder(player.getUniqueId());
         if (!recorder.isPresent()) {
             FMT.error("You are not currently recording any positions").tell(player);
             return;
@@ -66,7 +64,7 @@ public class Conditions {
     @Permission(Permissions.CONDITION_COMMAND)
     @Command(alias = "interact", parent = "condition")
     public void interact(@Caller Player player, @One("name") String name) {
-        Optional<PositionRecorder> recorder = Animator.getPositionRecorder(player.getUniqueId());
+        Optional<ConditionRecorder> recorder = Animator.getConditionRecorder(player.getUniqueId());
         if (!recorder.isPresent()) {
             FMT.error("You are not currently recording any positions").tell(player);
             return;
@@ -90,7 +88,7 @@ public class Conditions {
     @Permission(Permissions.CONDITION_COMMAND)
     @Command(alias = "radius", parent = "condition")
     public void radius(@Caller Player player, @One("name") String name, @One("radius") int rad) {
-        Optional<PositionRecorder> recorder = Animator.getPositionRecorder(player.getUniqueId());
+        Optional<ConditionRecorder> recorder = Animator.getConditionRecorder(player.getUniqueId());
         if (!recorder.isPresent()) {
             FMT.error("You are not currently recording any positions").tell(player);
             return;
@@ -172,5 +170,14 @@ public class Conditions {
         @SuppressWarnings("unchecked")
         boolean result = condition.test(source);
         FMT.info("subject: ").stress(source.getName()).info(", condition: ").stress(condition).info(", result: ").stress(result).tell(source);
+    }
+
+    @Permission(Permissions.CONDITION_COMMAND)
+    @Command(alias = "position", parent = "condition test")
+    public void testPosition(@Caller Player player, @One("condition") Condition condition) {
+        Vector3i position = player.getLocation().getBlockPosition();
+        @SuppressWarnings("unchecked")
+        boolean result = condition.test(player.getLocation().getBlockPosition());
+        FMT.info("pos: ").stress(position).info(", condition: ").stress(condition).info(", result: ").stress(result).tell(player);
     }
 }

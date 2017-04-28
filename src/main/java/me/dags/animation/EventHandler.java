@@ -34,15 +34,10 @@ public class EventHandler {
     public void interactWand(InteractItemEvent.Secondary.MainHand event, @Root Player player) {
         Optional<Vector3d> position = event.getInteractionPoint();
         if (position.isPresent()) {
-            Optional<? extends PositionRecorder> recorder = Animator.getFrameRecorder(player.getUniqueId());
-            if (!recorder.isPresent()) {
-                recorder = Animator.getPositionRecorder(player.getUniqueId());
-            }
-
+            Optional<? extends PositionRecorder> recorder = Animator.getRecorder(player.getUniqueId());
             if (recorder.isPresent()) {
-                PositionRecorder positionRecorder = recorder.get();
                 Optional<ItemType> item = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
-                if (item.filter(i -> i == positionRecorder.getWand()).isPresent()) {
+                if (item.filter(i -> i == recorder.get().getWand()).isPresent()) {
                     recorder.get().setPos(player, position.get().toInt());
                 }
             }

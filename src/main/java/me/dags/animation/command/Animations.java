@@ -9,7 +9,10 @@ import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
 import me.dags.commandbus.annotation.Permission;
 import me.dags.commandbus.format.FMT;
+import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -18,6 +21,18 @@ import java.util.function.Supplier;
  * @author dags <dags@dags.me>
  */
 public class Animations {
+
+    @Permission(Permissions.ANIMATION_COMMAND)
+    @Command(alias = "record", parent = "animation")
+    public void record(@Caller Player player) {
+        Optional<ItemType> inHand = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
+        if (inHand.isPresent()) {
+            FMT.info("Position recorder wand bound to ").stress(inHand.get().getName()).tell(player);
+            Animator.createPositionRecorder(player.getUniqueId(), inHand.get());
+        } else {
+            FMT.error("You must be holding an item to use as your wand").tell(player);
+        }
+    }
 
     @Permission(Permissions.ANIMATION_COMMAND)
     @Command(alias = "moving", parent = "animation")
