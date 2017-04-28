@@ -40,24 +40,21 @@ public class Position implements Condition<Vector3i> {
     }
 
     @Override
+    public void populate(JsonObject object) {
+        object.addProperty("world", world);
+        object.add("min", Serializers.vector(min));
+        object.add("max", Serializers.vector(max));
+    }
+
+    @Override
     public boolean test(Vector3i position) {
         return greater(position, min) && lesser(position, max);
     }
 
     @Override
-    public JsonObject toJson() {
-        JsonObject object = toTypedJson();
-        object.addProperty("world", world);
-        object.add("min", Serializers.vector(min));
-        object.add("max", Serializers.vector(max));
-        return object;
-    }
-
-    @Override
     public void register(ConditionRegistry registry) {
-        if (registry.register(this)) {
-            registry.getWorldConditions(world).registerPositional(this);
-        }
+        registry.registerGlobal(this);
+        registry.getWorldConditions(world).registerPositional(this);
     }
 
     @Override
@@ -75,6 +72,11 @@ public class Position implements Condition<Vector3i> {
         return id != null ? id.hashCode() : 0;
     }
 
+    @Override
+    public String toString() {
+        return String.format("name=%s, world=%s, min=%s, max=%s", name, world, min, max);
+    }
+
     private boolean greater(Vector3i pos, Vector3i min) {
         return pos.getX() >= min.getX() && pos.getY() >= min.getY() && pos.getZ() >= min.getZ();
     }
@@ -83,7 +85,7 @@ public class Position implements Condition<Vector3i> {
         return pos.getX() <= max.getX() && pos.getY() <= max.getY() && pos.getZ() <= max.getZ();
     }
 
-    public static class Interact extends Position  {
+    public static class Interact extends Position {
 
         public Interact(String name, String world, Vector3i min, Vector3i max) {
             super(name, world, min, max);
@@ -96,9 +98,8 @@ public class Position implements Condition<Vector3i> {
 
         @Override
         public void register(ConditionRegistry registry) {
-            if (registry.register(this)) {
-                registry.getWorldConditions(super.world).registerInteractable(this);
-            }
+            registry.registerGlobal(this);
+            registry.getWorldConditions(super.world).registerInteractable(this);
         }
     }
 }

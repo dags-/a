@@ -1,14 +1,18 @@
-package me.dags.animation.animation;
+package me.dags.animation.handler;
 
 import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonObject;
 import me.dags.animation.Animator;
+import me.dags.animation.animation.Animation;
+import me.dags.animation.animation.AnimationFactory;
+import me.dags.animation.animation.SimpleAnimation;
 import me.dags.animation.condition.Aggregator;
 import me.dags.animation.condition.Condition;
 import me.dags.animation.frame.Frame;
-import me.dags.animation.frame.FrameList;
-import me.dags.animation.util.Sequence;
+import me.dags.animation.registry.JsonCatalogType;
 import me.dags.animation.util.SequenceProvider;
+import me.dags.animation.util.Serializers;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.world.World;
 
@@ -20,7 +24,7 @@ import java.util.List;
 /**
  * @author dags <dags@dags.me>
  */
-public class AnimationHandler {
+public class AnimationHandler implements JsonCatalogType {
 
     private final String name;
     private final String world;
@@ -41,6 +45,12 @@ public class AnimationHandler {
         this.name = builder.name;
     }
 
+    @Override
+    public String getId() {
+        return getName();
+    }
+
+    @Override
     public String getName() {
         return name;
     }
@@ -66,22 +76,31 @@ public class AnimationHandler {
     }
 
     public boolean isActive() {
-        return animationTask == null || animationTask.isComplete();
+        return animationTask != null && (animationTask.isPaused() || !animationTask.isComplete());
     }
 
     public void process(World world, Aggregator active) {
-        if (!isActive()) {
-            for (List<Condition<?>> trigger : triggers) {
-                if (active.containsAll(trigger)) {
-                    start(world);
-                    return;
-                }
+        for (List<Condition<?>> trigger : triggers) {
+            if (active.containsAll(trigger)) {
+                start(world);
+                return;
             }
         }
     }
 
     public void start(World world) {
-        if (animationTask == null || animationTask.isComplete()) {
+        if (animationTask != null) {
+            if (animationTask.isPaused()) {
+                animationTask.setPaused(false);
+                return;
+            }
+
+            if (animationTask.isComplete()) {
+                animationTask = null;
+            }
+        }
+
+        if (animationTask == null) {
             Animation animation = new SimpleAnimation(frames.getSequence());
 
             for (AnimationFactory factory : factories) {
@@ -98,28 +117,33 @@ public class AnimationHandler {
         }
     }
 
-    public void pause() {
+    public void cancel() {
         if (task != null) {
             task.cancel();
             task = null;
         }
-    }
 
-    public void resume() {
-        if (animationTask != null && !animationTask.isComplete()) {
-            task = Animator.runAnimation(animationTask);
-        }
-    }
-
-    public void complete() {
         if (animationTask != null) {
-            pause();
             animationTask = null;
         }
     }
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public String getType() {
+        return "handler";
+    }
+
+    @Override
+    public void populate(JsonObject object) {
+        object.addProperty("world", getWorld());
+        object.addProperty("frames", getFrames().getId());
+        object.add("origin", Serializers.vector(getOrigin()));
+        object.add("animations", Serializers.animations(getFactories()));
+        object.add("triggers", Serializers.triggers(getTriggers()));
     }
 
     public static class Builder {

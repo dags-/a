@@ -42,24 +42,21 @@ public class Radius implements Condition<Vector3i> {
     }
 
     @Override
+    public void populate(JsonObject object) {
+        object.addProperty("world", world);
+        object.addProperty("radius", radius);
+        object.add("position", Serializers.vector(position));
+    }
+
+    @Override
     public boolean test(Vector3i position) {
         return this.position.distanceSquared(position) <= radiusSq;
     }
 
     @Override
-    public JsonObject toJson() {
-        JsonObject object = toTypedJson();
-        object.addProperty("world", world);
-        object.addProperty("radius", radius);
-        object.add("position", Serializers.vector(position));
-        return object;
-    }
-
-    @Override
     public void register(ConditionRegistry registry) {
-        if (registry.register(this)) {
-            registry.getWorldConditions(world).registerPositional(this);
-        }
+        registry.registerGlobal(this);
+        registry.getWorldConditions(world).registerPositional(this);
     }
 
     @Override
@@ -70,11 +67,15 @@ public class Radius implements Condition<Vector3i> {
         Radius radius = (Radius) o;
 
         return id != null ? id.equals(radius.id) : radius.id == null;
-
     }
 
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("name=%s, world=%s, position=%s, radius=%s", name, world, position, radius);
     }
 }

@@ -9,7 +9,6 @@ import me.dags.animation.frame.FrameList;
 import me.dags.animation.frame.SchemFrame;
 import org.spongepowered.api.registry.CatalogRegistryModule;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,8 +32,7 @@ public class FrameRegistry implements CatalogRegistryModule<FrameList>, CacheLoa
     }
 
     public List<Frame> getFrames(FrameList key) {
-        List<Frame> frames = cache.get(key);
-        return frames != null ? frames : Collections.emptyList();
+        return cache.get(key);
     }
 
     @Override
@@ -57,6 +55,6 @@ public class FrameRegistry implements CatalogRegistryModule<FrameList>, CacheLoa
                 return frames;
             }
         }
-        throw new FileNotFoundException(path.toString());
+        return Collections.emptyList();
     }
 }

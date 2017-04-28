@@ -1,6 +1,7 @@
 package me.dags.animation.util;
 
 import com.google.gson.*;
+import me.dags.animation.registry.JsonCatalogType;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -50,6 +51,10 @@ public class Utils {
         } catch (IOException e) {
             return JsonNull.INSTANCE;
         }
+    }
+
+    public static void write(JsonCatalogType object, Path path) {
+        write(object.toJson(), path);
     }
 
     public static void write(JsonElement element, Path path) {

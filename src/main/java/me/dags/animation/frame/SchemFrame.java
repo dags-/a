@@ -2,7 +2,6 @@ package me.dags.animation.frame;
 
 import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.ImmutableList;
-import me.dags.animation.Animator;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
@@ -10,7 +9,6 @@ import org.spongepowered.api.data.MemoryDataContainer;
 import org.spongepowered.api.data.persistence.DataFormats;
 import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.world.BlockChangeFlag;
-import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.extent.ArchetypeVolume;
 import org.spongepowered.api.world.extent.BlockVolume;
@@ -41,15 +39,12 @@ public class SchemFrame implements Frame {
 
     @Override
     public Frame.History apply(World world, Vector3i position, BlockChangeFlag flag) {
-        // record the history
         Vector3i min = position.add(schematic.getBlockMin());
         Vector3i max = position.add(schematic.getBlockMax());
         BlockVolume history = world.getBlockView(min, max).getBlockCopy();
 
-        // paste the frame
-        Location<World> location = new Location<>(world, position);
-        schematic.apply(location, flag, Animator.getCause());
-
+        // TODO test
+        Frame.virtualPaste(world, schematic, position, flag, false);
         return new VolumeHistory(history);
     }
 

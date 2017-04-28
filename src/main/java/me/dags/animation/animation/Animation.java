@@ -1,8 +1,8 @@
 package me.dags.animation.animation;
 
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.animation.util.Sequence;
 import me.dags.animation.frame.Frame;
+import me.dags.animation.util.Sequence;
 import org.spongepowered.api.world.World;
 
 /**

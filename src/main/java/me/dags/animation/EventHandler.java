@@ -2,11 +2,12 @@ package me.dags.animation;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.animation.animation.AnimationHandler;
 import me.dags.animation.condition.Aggregator;
 import me.dags.animation.condition.Condition;
+import me.dags.animation.condition.PositionRecorder;
 import me.dags.animation.condition.WorldConditions;
 import me.dags.animation.frame.FrameRecorder;
+import me.dags.animation.handler.AnimationHandler;
 import me.dags.animation.registry.ConditionRegistry;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.type.HandTypes;
@@ -20,6 +21,7 @@ import org.spongepowered.api.event.message.MessageChannelEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
@@ -34,11 +36,19 @@ public class EventHandler {
     public void interactWand(InteractItemEvent.Secondary.MainHand event, @Root Player player) {
         Optional<Vector3d> position = event.getInteractionPoint();
         if (position.isPresent()) {
-            Optional<FrameRecorder> recorder = Animator.getRecorder(player.getUniqueId());
+            Optional<FrameRecorder> recorder = Animator.getFrameRecorder(player.getUniqueId());
             if (recorder.isPresent()) {
                 Optional<ItemType> item = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
                 if (item.filter(i -> i == recorder.get().getWand()).isPresent()) {
                     recorder.get().setPos(player, position.get().toInt());
+                }
+            }
+
+            Optional<PositionRecorder> positionRecorder = Animator.getPositionRecorder(player.getUniqueId());
+            if (positionRecorder.isPresent()) {
+                Optional<ItemType> item = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
+                if (item.filter(i -> i == positionRecorder.get().getWand()).isPresent()) {
+                    positionRecorder.get().setPos(player, position.get().toInt());
                 }
             }
         }
@@ -84,18 +94,27 @@ public class EventHandler {
         for (Player player : Sponge.getServer().getOnlinePlayers()) {
             World world = player.getWorld();
 
-            // update player position
+            ConditionRegistry registry = Animator.getConditionRegistry();
+            WorldConditions conditions = registry.getWorldConditions(world);
             Aggregator aggregator = Animator.getAggregator(player.getUniqueId());
+
+            // test position
             Vector3i position = player.getLocation().getBlockPosition();
-            WorldConditions conditions = Animator.getConditionRegistry().getWorldConditions(world);
             for (Condition<Vector3i> condition : conditions.getPositional()) {
                 if (condition.test(position)) {
                     aggregator.add(condition);
                 }
             }
 
+            // test permissions
+            for (Condition<Subject> condition : registry.getPermission()) {
+                if (condition.test(player)) {
+                    aggregator.add(condition);
+                }
+            }
+
             // handle conditions
-            for (AnimationHandler handler : Animator.getHandlers(world)) {
+            for (AnimationHandler handler : Animator.getHandlers(world).getAll()) {
                 if (!handler.isActive()) {
                     handler.process(world, aggregator);
                 }

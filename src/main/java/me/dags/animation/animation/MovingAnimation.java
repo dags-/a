@@ -2,8 +2,11 @@ package me.dags.animation.animation;
 
 import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.ImmutableList;
-import me.dags.animation.util.Sequence;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import me.dags.animation.frame.Frame;
+import me.dags.animation.util.Sequence;
+import me.dags.animation.util.Serializers;
 import org.spongepowered.api.world.World;
 
 import java.util.Collection;
@@ -20,7 +23,7 @@ public class MovingAnimation implements Animation {
 
     private Vector3i offset = new Vector3i(0, 0, 0);
 
-    public MovingAnimation(Animation animation, Sequence<Vector3i> positions) {
+    private MovingAnimation(Animation animation, Sequence<Vector3i> positions) {
         this.animation = animation;
         this.positions = positions;
     }
@@ -62,8 +65,12 @@ public class MovingAnimation implements Animation {
     public static class Factory implements AnimationFactory {
 
         private final List<Vector3i> path;
+        private final String id;
+        private final String name;
 
         private Factory(Builder builder) {
+            this.name = builder.name;
+            this.id = getType() + ":" + getName();
             this.path = ImmutableList.copyOf(builder.path);
         }
 
@@ -73,18 +80,38 @@ public class MovingAnimation implements Animation {
         }
 
         @Override
-        public String getId() {
+        public String getType() {
             return "moving";
         }
 
         @Override
+        public void populate(JsonObject object) {
+            JsonArray array = new JsonArray();
+            for (Vector3i pos : path) {
+                array.add(Serializers.vector(pos));
+            }
+            object.add("path", array);
+        }
+
+        @Override
+        public String getId() {
+            return id;
+        }
+
+        @Override
         public String getName() {
-            return getId();
+            return name;
         }
 
         public static class Builder {
 
             private List<Vector3i> path = new LinkedList<>();
+            private String name = "";
+
+            public Builder name(String name) {
+                this.name = name;
+                return this;
+            }
 
             public Builder path(Collection<Vector3i> path) {
                 this.path.addAll(path);

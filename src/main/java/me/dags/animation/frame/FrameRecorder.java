@@ -1,7 +1,7 @@
 package me.dags.animation.frame;
 
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.animation.animation.AnimationHandler;
+import me.dags.animation.handler.AnimationHandler;
 import me.dags.animation.util.Sequence;
 import me.dags.animation.util.SequenceProvider;
 import me.dags.commandbus.format.FMT;

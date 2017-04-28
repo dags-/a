@@ -34,19 +34,18 @@ public class Keyword implements Condition<String> {
     }
 
     @Override
+    public void populate(JsonObject object) {
+        object.addProperty("keyword", keyword);
+    }
+
+    @Override
     public boolean test(String s) {
         return s.equalsIgnoreCase(keyword);
     }
 
     @Override
-    public JsonObject toJson() {
-        JsonObject object = toTypedJson();
-        object.addProperty("keyword", keyword);
-        return object;
-    }
-
-    @Override
     public void register(ConditionRegistry registry) {
+        registry.registerGlobal(this);
         registry.registerTextual(this);
     }
 
@@ -64,5 +63,10 @@ public class Keyword implements Condition<String> {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("name=%s, keyword=%s", name, keyword);
     }
 }

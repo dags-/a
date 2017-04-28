@@ -24,12 +24,12 @@ public class AnimationRegistry implements CatalogRegistryModule<AnimationFactory
         this.root = dir;
     }
 
-    public boolean register(AnimationFactory factory) {
-        if (!factories.containsKey(factory.getId())) {
-            factories.put(factory.getId(), factory);
-            return true;
-        }
-        return false;
+    public boolean hasRegistered(String id) {
+        return factories.containsKey(id);
+    }
+
+    public void register(AnimationFactory factory) {
+        factories.put(factory.getId(), factory);
     }
 
     @Override
@@ -44,6 +44,7 @@ public class AnimationRegistry implements CatalogRegistryModule<AnimationFactory
 
     @Override
     public void registerDefaults() {
+        factories.clear();
         register(new PushPullAnimation.Factory());
         register(new RepeatAnimation.Factory());
         // load from file

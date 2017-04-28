@@ -1,8 +1,9 @@
 package me.dags.animation.animation;
 
 import com.flowpowered.math.vector.Vector3i;
-import me.dags.animation.util.Sequence;
+import com.google.gson.JsonObject;
 import me.dags.animation.frame.Frame;
+import me.dags.animation.util.Sequence;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.world.World;
 
@@ -55,6 +56,21 @@ public class RepeatAnimation implements Animation {
         @Override
         public String getName() {
             return getId();
+        }
+
+        @Override
+        public String getType() {
+            return getId();
+        }
+
+        @Override
+        public String getFileName() {
+            return getId() + ".json";
+        }
+
+        @Override
+        public void populate(JsonObject object) {
+
         }
     }
 }
