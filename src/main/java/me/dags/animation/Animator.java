@@ -7,7 +7,6 @@ import me.dags.animation.animation.AnimationFactory;
 import me.dags.animation.command.Frames;
 import me.dags.animation.condition.Aggregator;
 import me.dags.animation.condition.Condition;
-import me.dags.animation.condition.PositionRecorder;
 import me.dags.animation.frame.FrameList;
 import me.dags.animation.frame.FrameRecorder;
 import me.dags.animation.handler.AnimationTask;

@@ -4,9 +4,7 @@ import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.animation.condition.Aggregator;
 import me.dags.animation.condition.Condition;
-import me.dags.animation.condition.PositionRecorder;
 import me.dags.animation.condition.WorldConditions;
-import me.dags.animation.frame.FrameRecorder;
 import me.dags.animation.handler.AnimationHandler;
 import me.dags.animation.registry.ConditionRegistry;
 import org.spongepowered.api.Sponge;
@@ -36,19 +34,16 @@ public class EventHandler {
     public void interactWand(InteractItemEvent.Secondary.MainHand event, @Root Player player) {
         Optional<Vector3d> position = event.getInteractionPoint();
         if (position.isPresent()) {
-            Optional<FrameRecorder> recorder = Animator.getFrameRecorder(player.getUniqueId());
-            if (recorder.isPresent()) {
-                Optional<ItemType> item = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
-                if (item.filter(i -> i == recorder.get().getWand()).isPresent()) {
-                    recorder.get().setPos(player, position.get().toInt());
-                }
+            Optional<? extends PositionRecorder> recorder = Animator.getFrameRecorder(player.getUniqueId());
+            if (!recorder.isPresent()) {
+                recorder = Animator.getPositionRecorder(player.getUniqueId());
             }
 
-            Optional<PositionRecorder> positionRecorder = Animator.getPositionRecorder(player.getUniqueId());
-            if (positionRecorder.isPresent()) {
+            if (recorder.isPresent()) {
+                PositionRecorder positionRecorder = recorder.get();
                 Optional<ItemType> item = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
-                if (item.filter(i -> i == positionRecorder.get().getWand()).isPresent()) {
-                    positionRecorder.get().setPos(player, position.get().toInt());
+                if (item.filter(i -> i == positionRecorder.getWand()).isPresent()) {
+                    recorder.get().setPos(player, position.get().toInt());
                 }
             }
         }

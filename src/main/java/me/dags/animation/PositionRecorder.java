@@ -1,8 +1,10 @@
-package me.dags.animation.condition;
+package me.dags.animation;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.animation.animation.MovingAnimation;
+import me.dags.animation.condition.Position;
+import me.dags.animation.condition.Radius;
 import me.dags.commandbus.format.FMT;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
@@ -28,39 +30,76 @@ public class PositionRecorder {
         return wand;
     }
 
+    public Optional<Vector3i> get(int index) {
+        return getSize() > index ? Optional.of(positions.get(index)) : Optional.empty();
+    }
+
+    public Optional<Vector3i> getFromEnd(int count) {
+        if (getSize() > count) {
+            return Optional.of(positions.get(getSize() - (count + 1)));
+        }
+        return Optional.empty();
+    }
+
+    public Optional<Vector3i> getFirst() {
+        return get(0);
+    }
+
+    public Optional<Vector3i> getLast() {
+        return getFromEnd(0);
+    }
+
+    public int getSize() {
+        return positions.size();
+    }
+
+    public void reset() {
+        positions.clear();
+    }
+
     public void setPos(Player player, Vector3i position) {
         world = player.getWorld().getName();
         positions.add(position);
-        FMT.info("Set pos ").stress(position).tell(player);
+        FMT.info("Set ").stress("pos%s", getSize() - 1).info(" to ").stress(position).tell(player);
     }
 
     public Optional<Position> makePosition(Player player, String name) {
-        if (positions.size() < 2) {
+        Optional<Vector3i> pos1 = getFromEnd(1);
+        Optional<Vector3i> pos2 = getFromEnd(0);
+
+        if (!pos1.isPresent() || pos2.isPresent()) {
             FMT.error("Not enough positions set").tell(player);
             return Optional.empty();
         }
-        Vector3i min = positions.get(positions.size() - 2);
-        Vector3i max = positions.get(positions.size() - 1);
+
+        Vector3i min = pos1.get().min(pos2.get());
+        Vector3i max = pos1.get().max(pos2.get());
         return Optional.of(new Position(name, world, min, max));
     }
 
     public Optional<Position.Interact> makeInteract(Player player, String name) {
-        if (positions.size() < 2) {
+        Optional<Vector3i> pos1 = getFromEnd(1);
+        Optional<Vector3i> pos2 = getFromEnd(0);
+
+        if (!pos1.isPresent() || pos2.isPresent()) {
             FMT.error("Not enough positions set").tell(player);
             return Optional.empty();
         }
-        Vector3i min = positions.get(positions.size() - 2);
-        Vector3i max = positions.get(positions.size() - 1);
+
+        Vector3i min = pos1.get().min(pos2.get());
+        Vector3i max = pos1.get().max(pos2.get());
         return Optional.of(new Position.Interact(name, world, min, max));
     }
 
     public Optional<Radius> makeRadius(Player player, String name, int radius) {
-        if (positions.size() < 1) {
+        Optional<Vector3i> pos1 = getFromEnd(0);
+
+        if (!pos1.isPresent()) {
             FMT.error("Not enough positions set").tell(player);
             return Optional.empty();
         }
-        Vector3i position = positions.get(positions.size() - 1);
-        return Optional.of(new Radius(name, world, position, radius));
+
+        return Optional.of(new Radius(name, world, pos1.get(), radius));
     }
 
     public Optional<MovingAnimation.Factory> calculatePath(Player player, String name, int steps) {

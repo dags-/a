@@ -1,8 +1,8 @@
 package me.dags.animation.frame;
 
 import me.dags.animation.Animator;
-import me.dags.animation.util.Sequence;
-import me.dags.animation.util.SequenceProvider;
+import me.dags.animation.Sequence;
+import me.dags.animation.SequenceProvider;
 import org.spongepowered.api.CatalogType;
 
 /**

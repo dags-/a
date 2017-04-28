@@ -4,8 +4,8 @@ import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import me.dags.animation.Sequence;
 import me.dags.animation.frame.Frame;
-import me.dags.animation.util.Sequence;
 import me.dags.animation.util.Serializers;
 import org.spongepowered.api.world.World;
 

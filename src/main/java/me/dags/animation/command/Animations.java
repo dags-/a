@@ -2,8 +2,8 @@ package me.dags.animation.command;
 
 import me.dags.animation.Animator;
 import me.dags.animation.Permissions;
+import me.dags.animation.PositionRecorder;
 import me.dags.animation.animation.MovingAnimation;
-import me.dags.animation.condition.PositionRecorder;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;

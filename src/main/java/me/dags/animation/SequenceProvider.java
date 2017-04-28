@@ -1,4 +1,4 @@
-package me.dags.animation.util;
+package me.dags.animation;
 
 /**
  * @author dags <dags@dags.me>

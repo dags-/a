@@ -1,9 +1,10 @@
 package me.dags.animation.frame;
 
 import com.flowpowered.math.vector.Vector3i;
+import me.dags.animation.PositionRecorder;
+import me.dags.animation.Sequence;
+import me.dags.animation.SequenceProvider;
 import me.dags.animation.handler.AnimationHandler;
-import me.dags.animation.util.Sequence;
-import me.dags.animation.util.SequenceProvider;
 import me.dags.commandbus.format.FMT;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
@@ -14,14 +15,14 @@ import org.spongepowered.api.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author dags <dags@dags.me>
  */
-public class FrameRecorder implements SequenceProvider<Frame> {
+public class FrameRecorder extends PositionRecorder implements SequenceProvider<Frame> {
 
     private final List<Frame> frames = new ArrayList<>();
-    private final ItemType wand;
 
     private AnimationHandler tester = AnimationHandler.builder().build();
     private Vector3i pos1 = Vector3i.ZERO;
@@ -29,11 +30,30 @@ public class FrameRecorder implements SequenceProvider<Frame> {
     private Vector3i origin = Vector3i.ZERO;
 
     public FrameRecorder(ItemType wand) {
-        this.wand = wand;
+        super(wand);
     }
 
-    public ItemType getWand() {
-        return wand;
+    @Override
+    public void setPos(Player player, Vector3i pos) {
+        if (getSize() == 3) {
+            reset();
+            pos1 = Vector3i.ZERO;
+            pos2 = Vector3i.ZERO;
+            origin = Vector3i.ZERO;
+        } else {
+            super.setPos(player, pos);
+            Optional<Vector3i> last = getLast();
+
+            if (last.isPresent()) {
+                if (getSize() == 1) {
+                    pos1 = last.get();
+                } else if (getSize() == 2) {
+                    pos2 = last.get();
+                } else {
+                    origin = last.get();
+                }
+            }
+        }
     }
 
     public Vector3i getOrigin() {
@@ -62,30 +82,12 @@ public class FrameRecorder implements SequenceProvider<Frame> {
         return frames;
     }
 
-    public void setPos(Player source, Vector3i pos) {
-        if (pos1 == Vector3i.ZERO) {
-            pos1 = pos;
-            pos2 = Vector3i.ZERO;
-            FMT.info("Set frame pos1 ").stress(pos1).tell(source);
-        } else if (pos2 == Vector3i.ZERO){
-            pos2 = pos;
-            FMT.info("Set frame pos2 ").stress(pos2).tell(source);
-        } else if (origin == Vector3i.ZERO) {
-            origin = pos;
-            FMT.info("Set origin ").stress(pos2).tell(source);
-        } else {
-            pos1 = Vector3i.ZERO;
-            pos2 = Vector3i.ZERO;
-            origin = Vector3i.ZERO;
-            FMT.info("Reset pos1 & pos2 & origin").tell(source);
-        }
-    }
-
     public void addFrame(Player source, int duration) {
         if (pos1 == Vector3i.ZERO) {
             FMT.stress("pos1").error(" has not been set!").tell(source);
             return;
         }
+
         if (pos2 == Vector3i.ZERO) {
             FMT.stress("pos2").error(" has not been set!").tell(source);
             return;

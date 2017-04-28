@@ -3,6 +3,7 @@ package me.dags.animation.command;
 import com.flowpowered.math.vector.Vector3i;
 import me.dags.animation.Animator;
 import me.dags.animation.Permissions;
+import me.dags.animation.PositionRecorder;
 import me.dags.animation.condition.*;
 import me.dags.animation.util.Utils;
 import me.dags.commandbus.annotation.Caller;

@@ -2,8 +2,8 @@ package me.dags.animation.animation;
 
 import com.flowpowered.math.vector.Vector3i;
 import com.google.gson.JsonObject;
+import me.dags.animation.Sequence;
 import me.dags.animation.frame.Frame;
-import me.dags.animation.util.Sequence;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.world.World;
 

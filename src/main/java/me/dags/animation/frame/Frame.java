@@ -7,9 +7,7 @@ import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.world.BlockChangeFlag;
 import org.spongepowered.api.world.World;
-import org.spongepowered.api.world.extent.ArchetypeVolume;
 import org.spongepowered.api.world.extent.BlockVolume;
-import org.spongepowered.api.world.extent.StorageType;
 
 /**
  * @author dags <dags@dags.me>
