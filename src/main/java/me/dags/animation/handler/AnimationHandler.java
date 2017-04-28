@@ -81,7 +81,7 @@ public class AnimationHandler implements JsonCatalogType {
 
     public void process(World world, Aggregator active) {
         for (List<Condition<?>> trigger : triggers) {
-            if (active.containsAll(trigger)) {
+            if (!trigger.isEmpty() && active.containsAll(trigger)) {
                 start(world);
                 return;
             }
