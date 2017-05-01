@@ -11,6 +11,7 @@ import me.dags.animation.condition.*;
 import me.dags.animation.frame.FrameList;
 import me.dags.animation.handler.AnimationHandler;
 import me.dags.animation.handler.WorldHandlers;
+import me.dags.animation.registry.AnimationRegistry;
 import me.dags.animation.registry.ConditionRegistry;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.service.permission.Subject;
@@ -31,6 +32,16 @@ public class Deserializers {
             .put("keyword", Deserializers::keyword)
             .put("radius", Deserializers::radius)
             .build();
+
+    public static void loadAnimations(AnimationRegistry registry, Path dir) {
+//        Utils.readDir(dir)
+//                .filter(Utils::isJsonFile)
+//                .map(Utils::read)
+//                .filter(JsonElement::isJsonObject)
+//                .map(Deserializers::condition)
+//                .filter(Objects::nonNull)
+//                .forEach(animation -> );
+    }
 
     public static void loadConditions(ConditionRegistry registry, Path dir) {
         Utils.readDir(dir)

@@ -11,7 +11,6 @@ import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.world.BlockChangeFlag;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.extent.ArchetypeVolume;
-import org.spongepowered.api.world.extent.BlockVolume;
 import org.spongepowered.api.world.schematic.BlockPaletteTypes;
 import org.spongepowered.api.world.schematic.Schematic;
 
@@ -26,26 +25,37 @@ import java.util.Optional;
 public class SchemFrame implements Frame {
 
     private final Schematic schematic;
+    private final boolean air;
     private final int duration;
 
     public SchemFrame(Schematic schematic) {
         Optional<Integer> duration = schematic.getMetadata().getInt(DataQuery.of("duration"));
+        Optional<Boolean> air = schematic.getMetadata().getBoolean(DataQuery.of("air"));
+
         if (!duration.isPresent()) {
             throw new UnsupportedOperationException("No duration specified for the frame!");
         }
+
         this.schematic = schematic;
         this.duration = duration.get();
+        this.air = air.orElse(false);
     }
 
     @Override
-    public Frame.History apply(World world, Vector3i position, BlockChangeFlag flag) {
-        Vector3i min = position.add(schematic.getBlockMin());
-        Vector3i max = position.add(schematic.getBlockMax());
-        BlockVolume history = world.getBlockView(min, max).getBlockCopy();
+    public History apply(World world, Vector3i position, BlockChangeFlag flag) {
+        History history = new SchemHistory();
+        Frame.paste(world, schematic, position, flag, air, history);
+        return history;
+    }
 
-        // TODO test
-        Frame.virtualPaste(world, schematic, position, flag, false);
-        return new VolumeHistory(history);
+    @Override
+    public Vector3i getMin() {
+        return schematic.getBlockMin();
+    }
+
+    @Override
+    public Vector3i getMax() {
+        return schematic.getBlockMax();
     }
 
     @Override
@@ -58,15 +68,18 @@ public class SchemFrame implements Frame {
         return DataTranslators.SCHEMATIC.translate(schematic);
     }
 
-    public static Frame at(World world, Vector3i pos1, Vector3i pos2, Vector3i origin, int duration) {
+    public static Frame at(World world, Vector3i pos1, Vector3i pos2, Vector3i origin, int duration, boolean air) {
         Vector3i min = pos1.min(pos2);
         Vector3i max = pos1.max(pos2);
         ArchetypeVolume volume = world.createArchetypeVolume(min, max, origin);
         Schematic schematic = Schematic.builder()
                 .paletteType(BlockPaletteTypes.LOCAL)
-                .metadata(new MemoryDataContainer().set(DataQuery.of("duration"), duration))
+                .metadata(new MemoryDataContainer()
+                        .set(DataQuery.of("duration"), duration)
+                        .set(DataQuery.of("air"), air))
                 .volume(volume)
                 .build();
+
         return new SchemFrame(schematic);
     }
 

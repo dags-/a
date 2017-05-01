@@ -40,17 +40,21 @@ public class FrameRecorder extends PositionRecorder implements SequenceProvider<
             pos1 = Vector3i.ZERO;
             pos2 = Vector3i.ZERO;
             origin = Vector3i.ZERO;
+            FMT.info("Reset positions").tell(player);
         } else {
-            super.setPos(player, pos);
-            Optional<Vector3i> last = getLast();
+            super.setPos(player, pos, false);
 
+            Optional<Vector3i> last = getLast();
             if (last.isPresent()) {
                 if (getSize() == 1) {
                     pos1 = last.get();
+                    FMT.info("Set pos1 ").stress(pos).tell(player);
                 } else if (getSize() == 2) {
                     pos2 = last.get();
+                    FMT.info("Set pos2 ").stress(pos).tell(player);
                 } else {
                     origin = last.get();
+                    FMT.info("Set origin ").stress(pos).tell(player);
                 }
             }
         }
@@ -62,6 +66,10 @@ public class FrameRecorder extends PositionRecorder implements SequenceProvider<
 
     public AnimationHandler getTester() {
         return tester;
+    }
+
+    public int getFrameCount() {
+        return frames.size();
     }
 
     public void setTester(AnimationHandler handler) {
@@ -82,7 +90,7 @@ public class FrameRecorder extends PositionRecorder implements SequenceProvider<
         return frames;
     }
 
-    public void addFrame(Player source, int duration) {
+    public void addFrame(Player source, int duration, boolean air) {
         if (pos1 == Vector3i.ZERO) {
             FMT.stress("pos1").error(" has not been set!").tell(source);
             return;
@@ -94,18 +102,18 @@ public class FrameRecorder extends PositionRecorder implements SequenceProvider<
         }
 
         FMT.info("Adding frame ").stress(frames.size()).tell(source);
-        Frame frame = SchemFrame.at(source.getWorld(), pos1, pos2, origin, duration);
+        Frame frame = SchemFrame.at(source.getWorld(), pos1, pos2, origin, duration, air);
         frames.add(frame);
     }
 
-    public void setFrame(Player source, int number, int duration) {
+    public void setFrame(Player source, int number, int duration, boolean air) {
         if (number < 0 || number >= frames.size()) {
             FMT.error("Frame number must be in range: ").stress("%s - %s", 0, frames.size() - 1).tell(source);
             return;
         }
 
         FMT.info("Setting frame ").stress(number).tell(source);
-        Frame frame = SchemFrame.at(source.getWorld(), pos1, pos2, origin, duration);
+        Frame frame = SchemFrame.at(source.getWorld(), pos1, pos2, origin, duration, air);
         frames.set(number, frame);
     }
 

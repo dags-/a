@@ -16,5 +16,7 @@ public interface Animation {
 
     void reset();
 
+    void reverse();
+
     int play(World world, Vector3i position);
 }

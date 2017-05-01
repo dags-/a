@@ -1,9 +1,11 @@
 package me.dags.animation.command;
 
+import com.flowpowered.math.vector.Vector3i;
 import me.dags.animation.Animator;
 import me.dags.animation.Permissions;
 import me.dags.animation.PositionRecorder;
-import me.dags.animation.animation.MovingAnimation;
+import me.dags.animation.animation.PathAnimation;
+import me.dags.animation.util.Utils;
 import me.dags.commandbus.annotation.Caller;
 import me.dags.commandbus.annotation.Command;
 import me.dags.commandbus.annotation.One;
@@ -14,8 +16,8 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * @author dags <dags@dags.me>
@@ -23,7 +25,7 @@ import java.util.function.Supplier;
 public class Animations {
 
     @Permission(Permissions.ANIMATION_COMMAND)
-    @Command(alias = "record", parent = "animation")
+    @Command(alias = "record", parent = "path")
     public void record(@Caller Player player) {
         Optional<ItemType> inHand = player.getItemInHand(HandTypes.MAIN_HAND).map(ItemStack::getItem);
         if (inHand.isPresent()) {
@@ -35,37 +37,41 @@ public class Animations {
     }
 
     @Permission(Permissions.ANIMATION_COMMAND)
-    @Command(alias = "moving", parent = "animation")
-    public void moving(@Caller Player player, String name) {
+    @Command(alias = "create", parent = "path")
+    public void setPath(@Caller Player player, String name) {
         Optional<PositionRecorder> recorder = Animator.getPositionRecorder(player.getUniqueId());
         if (!recorder.isPresent()) {
             FMT.error("You are not currently recording any positions").tell(player);
             return;
         }
-        moving(player, () -> recorder.get().makePath(player, name));
+        recorder.get().getPath(player).ifPresent(list -> path(player, name, list));
     }
 
     @Permission(Permissions.ANIMATION_COMMAND)
-    @Command(alias = "moving", parent = "animation")
-    public void moving(@Caller Player player, @One("name") String name, @One("steps") int steps) {
+    @Command(alias = "calc", parent = "path")
+    public void calcPath(@Caller Player player, @One("name") String name) {
         Optional<PositionRecorder> recorder = Animator.getPositionRecorder(player.getUniqueId());
         if (!recorder.isPresent()) {
             FMT.error("You are not currently recording any positions").tell(player);
             return;
         }
-        moving(player, () -> recorder.get().calculatePath(player, name, steps));
+        recorder.get().calculatePath(player).ifPresent(list -> path(player, name, list));
     }
 
-    private void moving(Player player, Supplier<Optional<MovingAnimation.Factory>> supplier) {
-        Optional<MovingAnimation.Factory> factory = supplier.get();
-        if (factory.isPresent()) {
-            if (Animator.getAnimationRegistry().hasRegistered(factory.get().getId())) {
-                FMT.error("An animation by that name already exists").tell(player);
-                return;
-            }
-
-            FMT.info("Registering animation ").stress(factory.get().getId()).tell(player);
-            Animator.getAnimationRegistry().register(factory.get());
+    private void path(Player player, String name, List<Vector3i> path) {
+        if (path.size() < 2) {
+            FMT.error("The path has less than 2 positions!").tell(player);
+            return;
         }
+
+        PathAnimation.Factory factory = PathAnimation.factoryBuilder().name(name).path(path).build();
+        if (Animator.getAnimationRegistry().hasRegistered(factory.getId())) {
+            FMT.error("An animation by that name already exists").tell(player);
+            return;
+        }
+
+        FMT.info("Registering animation ").stress(factory.getId()).tell(player);
+        Animator.getAnimationRegistry().register(factory);
+        Utils.write(factory, Animator.getAnimationRegistry().getAnimationsDir().resolve(factory.getFileName()));
     }
 }

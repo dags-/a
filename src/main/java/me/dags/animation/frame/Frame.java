@@ -16,34 +16,46 @@ public interface Frame {
 
     History apply(World world, Vector3i position, BlockChangeFlag flag);
 
+    Vector3i getMin();
+
+    Vector3i getMax();
+
     int getDuration();
 
     DataContainer toContainer();
 
     interface History {
 
-        Vector3i getMin();
-
-        Vector3i getMax();
+        void record(int x, int y, int z, BlockState state);
 
         void apply(World world, Vector3i position, BlockChangeFlag flag);
     }
 
-    static void paste(World world, BlockVolume source, Vector3i pos, BlockChangeFlag flag, boolean withAir) {
+    static void paste(World world, BlockVolume source, Vector3i pos, BlockChangeFlag flag, boolean withAir, Frame.History history) {
         source.getBlockWorker(Animator.getCause()).iterate((v, x, y, z) -> {
             BlockState state = v.getBlock(x, y, z);
-            if (withAir || state.getType() != BlockTypes.AIR) {
-                world.setBlock(x + pos.getX(), y + pos.getY(), z + pos.getZ(), state, flag, Animator.getCause());
+
+            if (!withAir || state.getType() != BlockTypes.AIR) {
+                int posX = pos.getX() + x;
+                int posY = pos.getY() + y;
+                int posZ = pos.getZ() + z;
+
+                BlockState current = world.getBlock(posX, posY, posZ);
+                if (current == state) {
+                    current = BlockTypes.AIR.getDefaultState();
+                }
+
+                history.record(posX, posY, posZ, current);
+                setBlock(world, posX, posY, posZ, state, flag);
             }
         });
     }
 
-    static void virtualPaste(World world, BlockVolume source, Vector3i pos, BlockChangeFlag flag, boolean withAir) {
-        source.getBlockWorker(Animator.getCause()).iterate((v, x, y, z) -> {
-            BlockState state = v.getBlock(x, y, z);
-            if (withAir || state.getType() != BlockTypes.AIR) {
-                world.sendBlockChange(x + pos.getX(), y + pos.getY(), z + pos.getZ(), state);
-            }
-        });
+    static void setBlock(World world, int x, int y, int z, BlockState state, BlockChangeFlag flag) {
+        world.setBlock(x, y, z, state, flag, Animator.getCause());
+    }
+
+    static void setVirtualBlock(World world, int x, int y, int z, BlockState state) {
+        world.sendBlockChange(x, y, z, state);
     }
 }

@@ -34,6 +34,11 @@ public class RepeatAnimation implements Animation {
     }
 
     @Override
+    public void reverse() {
+        animation.reverse();
+    }
+
+    @Override
     public int play(World world, Vector3i position) {
         if (animation.hasFinished()) {
             animation.reset();

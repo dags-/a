@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import me.dags.animation.animation.AnimationFactory;
 import me.dags.animation.animation.PushPullAnimation;
 import me.dags.animation.animation.RepeatAnimation;
+import me.dags.animation.util.Deserializers;
 import org.spongepowered.api.registry.CatalogRegistryModule;
 
 import java.nio.file.Path;
@@ -47,6 +48,10 @@ public class AnimationRegistry implements CatalogRegistryModule<AnimationFactory
         factories.clear();
         register(new PushPullAnimation.Factory());
         register(new RepeatAnimation.Factory());
-        // load from file
+        Deserializers.loadAnimations(this, getAnimationsDir());
+    }
+
+    public Path getAnimationsDir() {
+        return root;
     }
 }

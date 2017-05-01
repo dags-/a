@@ -7,23 +7,29 @@ import com.google.gson.JsonObject;
 import me.dags.animation.Sequence;
 import me.dags.animation.frame.Frame;
 import me.dags.animation.util.Serializers;
+import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.world.World;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @author dags <dags@dags.me>
  */
-public class MovingAnimation implements Animation {
+public class PathAnimation implements Animation {
+
+    private static final Predicate<Entity> LIVING = Living.class::isInstance;
 
     private final Animation animation;
     private final Sequence<Vector3i> positions;
 
-    private Vector3i offset = new Vector3i(0, 0, 0);
+    private Vector3i offset = Vector3i.ZERO;
+    private int direction = 1;
 
-    private MovingAnimation(Animation animation, Sequence<Vector3i> positions) {
+    private PathAnimation(Animation animation, Sequence<Vector3i> positions) {
         this.animation = animation;
         this.positions = positions;
     }
@@ -41,9 +47,17 @@ public class MovingAnimation implements Animation {
     @Override
     public int play(World world, Vector3i position) {
         if (positions.hasNext()) {
-            offset = offset.add(positions.next());
-            Vector3i pos = position.add(offset);
-            return animation.play(world, pos);
+            Vector3i increment = positions.next().mul(direction);
+
+            Frame frame = animation.getTimeline().current();
+            if (frame != null) {
+                Vector3i lastPos = position.add(offset);
+                moveLiving(world, lastPos.add(frame.getMin()), lastPos.add(frame.getMax()), increment);
+            }
+
+            offset = offset.add(increment);
+
+            return animation.play(world, position.add(offset));
         }
         return 0;
     }
@@ -51,15 +65,26 @@ public class MovingAnimation implements Animation {
     @Override
     public void reset() {
         animation.reset();
-        positions.goToStart();
+        positions.setDirection(1).reset();
+        direction = 1;
+    }
+
+    @Override
+    public void reverse() {
+        animation.reverse();
+        positions.skip().reverse();
+        direction = -direction;
+    }
+
+    private void moveLiving(World world, Vector3i min, Vector3i max, Vector3i offset) {
+        Collection<Entity> entities = world.getExtentView(min, max).getEntities(LIVING);
+        for (Entity entity : entities) {
+            entity.setLocation(entity.getLocation().add(offset));
+        }
     }
 
     public static Factory.Builder factoryBuilder() {
         return new Factory.Builder();
-    }
-
-    public static Factory factoryOf(Collection<Vector3i> path) {
-        return factoryBuilder().path(path).build();
     }
 
     public static class Factory implements AnimationFactory {
@@ -76,12 +101,12 @@ public class MovingAnimation implements Animation {
 
         @Override
         public Animation create(Animation animation) {
-            return new MovingAnimation(animation, Sequence.of(path));
+            return new PathAnimation(animation, Sequence.of(path));
         }
 
         @Override
         public String getType() {
-            return "moving";
+            return "path";
         }
 
         @Override

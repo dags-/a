@@ -31,14 +31,20 @@ public class PushPullAnimation implements Animation {
     @Override
     public int play(World world, Vector3i position) {
         if (animation.hasFinished()) {
-            reset();
+            reverse();
         }
         return animation.play(world, position);
     }
 
     @Override
     public void reset() {
-        animation.getTimeline().reverse();
+        animation.reset();
+        pull = false;
+    }
+
+    @Override
+    public void reverse() {
+        animation.reverse();
         pull = !pull;
     }
 

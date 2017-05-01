@@ -1,14 +1,12 @@
 package me.dags.animation.registry;
 
 import me.dags.animation.handler.WorldHandlers;
-import me.dags.animation.util.Utils;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.world.World;
 
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  * @author dags <dags@dags.me>
@@ -27,7 +25,12 @@ public class HandlerRegistry {
     }
 
     public WorldHandlers getWorldHandlers(String world) {
-        return Utils.ensure(handlers, world, supplier(world));
+        WorldHandlers worldHandlers = handlers.get(world);
+        if (worldHandlers == null) {
+            handlers.put(world, worldHandlers = new WorldHandlers(root.resolve(world)));
+            worldHandlers.registerDefaults();
+        }
+        return worldHandlers;
     }
 
     public void clear() {
@@ -43,13 +46,5 @@ public class HandlerRegistry {
     public void registerDefaults() {
         clear();
         Sponge.getServer().getWorlds().forEach(this::getWorldHandlers);
-    }
-
-    private Supplier<WorldHandlers> supplier(String world) {
-        return () -> {
-            WorldHandlers handlers = new WorldHandlers(root.resolve(world));
-            handlers.registerDefaults();
-            return handlers;
-        };
     }
 }

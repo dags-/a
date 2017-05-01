@@ -37,18 +37,30 @@ public class Frames {
     @Permission(Permissions.FRAME_COMMAND)
     @Command(alias = "add", parent = "frame")
     public void add(@Caller Player player, @One("duration") int duration) {
+        add(player, duration, false);
+    }
+
+    @Permission(Permissions.FRAME_COMMAND)
+    @Command(alias = "add", parent = "frame")
+    public void add(@Caller Player player, @One("duration") int duration, @One("air") boolean air) {
         Optional<FrameRecorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
-            recorder.get().addFrame(player,  duration);
+            recorder.get().addFrame(player,  duration, air);
         }
     }
 
     @Permission(Permissions.FRAME_COMMAND)
-    @Command(alias = "replace", parent = "frame")
-    public void replace(@Caller Player player, @One("index") int index, @One("duration") int duration) {
+    @Command(alias = "set", parent = "frame")
+    public void set(@Caller Player player, @One("index") int index, @One("duration") int duration) {
+        set(player, index, duration, false);
+    }
+
+    @Permission(Permissions.FRAME_COMMAND)
+    @Command(alias = "set", parent = "frame")
+    public void set(@Caller Player player, @One("index") int index, @One("duration") int duration, @One("air") boolean air) {
         Optional<FrameRecorder> recorder = getRecorder(player);
         if (recorder.isPresent()) {
-            recorder.get().setFrame(player, index, duration);
+            recorder.get().setFrame(player, index, duration, air);
         }
     }
 
@@ -90,21 +102,52 @@ public class Frames {
 
     @Permission(Permissions.FRAME_COMMAND)
     @Command(alias = "test", parent = "frame")
+    public void test(@Caller Player player, @One("animation") AnimationFactory f1, @One("animation") AnimationFactory f2, @One("animation") AnimationFactory f3, @One("animation") AnimationFactory f4) {
+        test(player, new AnimationFactory[]{f1, f2, f3, f4});
+    }
+
+    @Permission(Permissions.FRAME_COMMAND)
+    @Command(alias = "test", parent = "frame")
+    public void test(@Caller Player player, @One("animation") AnimationFactory f1, @One("animation") AnimationFactory f2, @One("animation") AnimationFactory f3) {
+        test(player, new AnimationFactory[]{f1, f2, f3});
+    }
+
+    @Permission(Permissions.FRAME_COMMAND)
+    @Command(alias = "test", parent = "frame")
+    public void test(@Caller Player player, @One("animation") AnimationFactory f1, AnimationFactory f2) {
+        test(player, new AnimationFactory[]{f1, f2});
+    }
+
+    @Permission(Permissions.FRAME_COMMAND)
+    @Command(alias = "test", parent = "frame")
     public void test(@Caller Player player, @One("animation") AnimationFactory factory) {
+        test(player, new AnimationFactory[]{factory});
+    }
+
+    private void test(Player player, AnimationFactory[] factories) {
         Optional<FrameRecorder> recorder = getRecorder(player);
 
         if (recorder.isPresent()) {
+            if (recorder.get().getFrameCount() == 0) {
+                FMT.error("You have not saved any frames yet!").tell(player);
+                return;
+            }
+            
             FMT.info("Starting test animation...").tell(player);
-            AnimationHandler handler = AnimationHandler.builder()
+            AnimationHandler.Builder builder = AnimationHandler.builder()
                     .sequenceProvider(recorder.get())
-                    .origin(recorder.get().getOrigin())
-                    .animation(factory)
-                    .build();
+                    .origin(recorder.get().getOrigin());
 
+            for (AnimationFactory factory : factories) {
+                builder.animation(factory);
+            }
+
+            AnimationHandler handler = builder.build();
             recorder.get().setTester(handler);
             handler.start(player.getWorld());
         }
     }
+
 
     @Permission(Permissions.FRAME_COMMAND)
     @Command(alias = "stop", parent = "frame")

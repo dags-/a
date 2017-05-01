@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import me.dags.animation.condition.Condition;
 import me.dags.animation.condition.WorldConditions;
 import me.dags.animation.util.Deserializers;
-import me.dags.animation.util.Utils;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.registry.CatalogRegistryModule;
 import org.spongepowered.api.service.permission.Subject;
@@ -15,7 +14,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 /**
  * @author dags <dags@dags.me>
@@ -33,7 +31,12 @@ public class ConditionRegistry implements CatalogRegistryModule<Condition> {
     }
 
     public WorldConditions getWorldConditions(String world) {
-        return Utils.ensure(managers, world, newManager(world));
+        WorldConditions conditions = managers.get(world);
+        if (conditions == null) {
+            managers.put(world, conditions = new WorldConditions(this, root.resolve(world)));
+            conditions.loadDefaults();
+        }
+        return conditions;
     }
 
     public WorldConditions getWorldConditions(World world) {
@@ -94,13 +97,5 @@ public class ConditionRegistry implements CatalogRegistryModule<Condition> {
 
     public Path getConditionsDir() {
         return root;
-    }
-
-    private Supplier<WorldConditions> newManager(String world) {
-        return () -> {
-            WorldConditions conditions = new WorldConditions(this, root.resolve(world));
-            conditions.loadDefaults();
-            return conditions;
-        };
     }
 }

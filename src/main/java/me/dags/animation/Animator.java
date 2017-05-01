@@ -97,6 +97,7 @@ public class Animator {
         aggregators.clear();
         frameRecorders.invalidateAll();
         positionRecorders.invalidateAll();
+        conditionRecorders.invalidateAll();
 
         getFrameRegistry().registerDefaults();
         getHandlerRegistry().registerDefaults();

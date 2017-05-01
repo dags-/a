@@ -21,7 +21,7 @@ public class ConditionRecorder extends PositionRecorder {
         Optional<Vector3i> pos1 = getFromEnd(1);
         Optional<Vector3i> pos2 = getFromEnd(0);
 
-        if (!pos1.isPresent() || pos2.isPresent()) {
+        if (!pos1.isPresent() || !pos2.isPresent()) {
             FMT.error("Not enough positions set").tell(player);
             return Optional.empty();
         }
@@ -35,7 +35,7 @@ public class ConditionRecorder extends PositionRecorder {
         Optional<Vector3i> pos1 = getFromEnd(1);
         Optional<Vector3i> pos2 = getFromEnd(0);
 
-        if (!pos1.isPresent() || pos2.isPresent()) {
+        if (!pos1.isPresent() || !pos2.isPresent()) {
             FMT.error("Not enough positions set").tell(player);
             return Optional.empty();
         }
